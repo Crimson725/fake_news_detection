@@ -2,6 +2,6 @@
 __pycache__/
 /model_files/bert-base-uncased/*
 /preprocessing/*.csv
-datasets/LUN/*.csv
-datasets/real_and_fake/*.csv
+datasets/LUN/
+datasets/real_and_fake/
 /model_files/trained_models/*.pt
