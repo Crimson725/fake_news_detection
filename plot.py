@@ -28,7 +28,7 @@ def plot_metrics():
 
 def plot_model_structure(model, inputs, file_name):
     dot = make_dot(model(*inputs), params=dict(model.named_parameters()))
-    dot.render(CONFIG.PLOT_PATH + '/' + file_name, format='png', view=True)
+    dot.render(CONFIG.PLOT_PATH + '/' + file_name, view=True)
 
 def tensorlogs(model, inputs):
     """
