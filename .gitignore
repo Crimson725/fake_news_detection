@@ -1,5 +1,4 @@
 .idea
 __pycache__/
-/model_files/bert-base-uncased/*
 /preprocessing/*.csv
-/model_files/trained_models/*
+/model_files/*
