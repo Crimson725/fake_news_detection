@@ -3,3 +3,5 @@ __pycache__/
 /preprocessing/*.csv
 /model_files/bert-base-uncased/*[!*.md]
 /model_files/trained_models/*[!*.md]
+.vscode/
+datasets/LUN/lun.csv

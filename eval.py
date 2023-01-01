@@ -7,7 +7,7 @@ import torch
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
 
 
 # TODO: REWRITE THE VALIDATION FUNCTION
@@ -19,23 +19,23 @@ def evaluate(model, test_loader):
     model.eval()
     with torch.no_grad():
         for _, data in enumerate(test_loader):
-            ids = data['ids'].to(device, dtype=torch.long)
-            mask = data['mask'].to(device, dtype=torch.long)
-            token_type_ids = data['token_type_ids'].to(device, dtype=torch.long)
-            targets = data['targets'].to(device, dtype=torch.float)
+            ids = data["ids"].to(device, dtype=torch.long)
+            mask = data["mask"].to(device, dtype=torch.long)
+            token_type_ids = data["token_type_ids"].to(device, dtype=torch.long)
+            targets = data["targets"].to(device, dtype=torch.float)
             outputs = model(ids, mask, token_type_ids)
             y_pred.extend(torch.argmax(outputs, 1).tolist())
             y_true.extend(targets.tolist())
-    print('Classification Report: ')
+    print("Classification Report: ")
     print(classification_report(y_true, y_pred, target_names=CONFIG.ID2LABEL.values()))
     cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
     ax = plt.subplot()
-    fig = sns.heatmap(cm, annot=True, ax=ax, fmt='d', cmap='Blues')
-    fig.get_figure().savefig(CONFIG.PLOT_PATH + '/' + 'confusion_matrix.png')
+    fig = sns.heatmap(cm, annot=True, ax=ax, fmt="d", cmap="Blues")
+    fig.get_figure().savefig(CONFIG.PLOT_PATH + "/" + "confusion_matrix.png")
 
-    ax.set_title('Confusion Matrix')
-    ax.set_xlabel('Predicted Labels')
-    ax.set_ylabel('True Labels')
+    ax.set_title("Confusion Matrix")
+    ax.set_xlabel("Predicted Labels")
+    ax.set_ylabel("True Labels")
 
     ax.xaxis.set_ticklabels(CONFIG.ID2LABEL.values())
     ax.yaxis.set_ticklabels(CONFIG.ID2LABEL.values())
@@ -48,21 +48,25 @@ def validation(logger, testing_loader, model):
     fin_outputs = []
     with torch.no_grad():
         for _, data in enumerate(testing_loader):
-            ids = data['ids'].to(device, dtype=torch.long)
-            mask = data['mask'].to(device, dtype=torch.long)
-            token_type_ids = data['token_type_ids'].to(device, dtype=torch.long)
-            targets = data['targets'].to(device, dtype=torch.float)
+            ids = data["ids"].to(device, dtype=torch.long)
+            mask = data["mask"].to(device, dtype=torch.long)
+            token_type_ids = data["token_type_ids"].to(device, dtype=torch.long)
+            targets = data["targets"].to(device, dtype=torch.float)
             outputs = model(ids, mask, token_type_ids)
             fin_targets.extend(targets.cpu().detach().numpy().tolist())
-            fin_outputs.extend(torch.sigmoid(outputs).cpu().detach().numpy().tolist())
+            fin_outputs.extend(outputs.cpu().detach().numpy().tolist())
     outputs = np.array(fin_outputs) >= 0.5
     accuracy = metrics.accuracy_score(fin_targets, outputs)
-    f1_score_micro = metrics.f1_score(fin_targets, outputs, average='micro')
-    f1_score_macro = metrics.f1_score(fin_targets, outputs, average='macro')
+    f1_score_micro = metrics.f1_score(fin_targets, outputs, average="micro")
+    f1_score_macro = metrics.f1_score(fin_targets, outputs, average="macro")
+    recall = metrics.recall_score(fin_targets, outputs)
     print(f"Accuracy Score = {accuracy}")
     print(f"F1 Score (Micro) = {f1_score_micro}")
     print(f"F1 Score (Macro) = {f1_score_macro}")
-    logger.log(f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}")
+    print(f"Recall Score = {recall}")
+    logger.log(
+        f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}, Recall Score = {recall}"
+    )
 
 
 # define the customBERT

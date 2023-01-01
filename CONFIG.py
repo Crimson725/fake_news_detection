@@ -1,22 +1,16 @@
 import os
+import pandas as pd
 
 path = os.getcwd()
 
 # path
-DATA_PATH = os.path.join(path, 'datasets/real_and_fake')
-DESTINATION_PATH = os.path.join(path, 'model_files/trained_models')
-BERT_PATH = os.path.join(path, 'model_files/bert-base-uncased')
-PLOT_PATH = os.path.join(path, 'figs')
+DATA_PATH = os.path.join(path, "datasets/")
+DESTINATION_PATH = os.path.join(path, "model_files/trained_models")
+BERT_PATH = os.path.join(path, "model_files/bert-base-uncased")
+PLOT_PATH = os.path.join(path, "figs")
 
 # label dict
-LABEL2ID = {
-    'fake': 0,
-    'real': 1
-}
+LABEL2ID = {"fake": 0, "real": 1}
 ID2LABEL = {k: v for v, k in LABEL2ID.items()}
 
-# hyperparameters
-LEARNING_RATE = 1e-5
-TRAIN_BATCH_SIZE = 8
-VALID_BATCH_SIZE = 4
-MAX_LEN = 512
+DEVICE = "cuda:7"
