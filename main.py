@@ -21,12 +21,28 @@ def parse_arguments():
     parser.add_argument(
         "--test_batch", type=int, default=8, help="validation set batch size"
     )
-    parser.add_argument("--max_len", type=int, default=512, help="max length to padding")
+    parser.add_argument(
+        "--max_len", type=int, default=512, help="max length to padding"
+    )
     parser.add_argument("--epochs", type=int, default=5, help="epoch of training ")
-    parser.add_argument("--model_name",type=str,default="customBERT",help="name of the model")
-    parser.add_argument("--verbose",type=bool,default=True,help="log verbose info of the training process")
-    parser.add_argument("--print_logs",type=bool,default=False,help="print the logs of the training process")
-    parser.add_argument("--dropout",type=float,default=0.5,help="dropout rate of the model")
+    parser.add_argument(
+        "--model_name", type=str, default="customBERT", help="name of the model"
+    )
+    parser.add_argument(
+        "--verbose",
+        type=bool,
+        default=True,
+        help="log verbose info of the training process",
+    )
+    parser.add_argument(
+        "--print_logs",
+        type=bool,
+        default=False,
+        help="print the logs of the training process",
+    )
+    parser.add_argument(
+        "--dropout", type=float, default=0.5, help="dropout rate of the model"
+    )
     args = parser.parse_args()
     return args
 

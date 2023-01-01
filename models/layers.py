@@ -21,7 +21,7 @@ class BERT(nn.Module):
 
 
 class customBERT(nn.Module):
-    def __init__(self, config,params):
+    def __init__(self, config, params):
         super(customBERT, self).__init__()
         # load the bert with provided config
         self.config = config

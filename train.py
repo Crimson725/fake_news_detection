@@ -23,16 +23,16 @@ class Trainer:
         self.device = torch.device(torch.device("cuda:{}".format(self.params.cuda)))
         # define the customBERT
         self.config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-        self.model = customBERT(self.config,params=self.params).to(self.device)
+        self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr)
-        self.model_name=params.model_name
+        self.model_name = params.model_name
 
     def get_loader(self):
         # dataset settings
         train_size = self.params.frac
-        df = pd.read_csv(os.path.join(CONFIG.DATA_PATH,self.params.dataset))
+        df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
         train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
             drop=True
         )
@@ -83,7 +83,7 @@ class Trainer:
 
         # get the model
         model = self.model
-        model_name=self.model_name
+        model_name = self.model_name
         # make the path to save the log and models
         file_path, tf_path = self.get_path(model_name)
         # train/valid loss
@@ -107,8 +107,8 @@ class Trainer:
         epochs = self.epochs
         loss_fn = self.loss_fn
         optimizer = self.optimizer
-        verbose=self.params.verbose
-        print_logs=self.params.print_logs
+        verbose = self.params.verbose
+        print_logs = self.params.print_logs
         for epoch in range(epochs):
             for _, data in enumerate(training_loader):
                 ids = data["ids"].to(self.device, dtype=torch.long)
@@ -161,17 +161,17 @@ class Trainer:
                         running_loss = 0
                         valid_running_loss = 0
                         model.train()
-                        msg="Epoch [{}/{}], Step [{}/{}], Train Loss: {:.4f}, Valid Loss: {:.4f}".format(
-                                epoch + 1,
-                                epochs,
-                                global_step,
-                                epochs * len(training_loader),
-                                average_train_loss,
-                                average_valid_loss,
-                            )
-                        if verbose==True:
-                            if print_logs==True:
-                            # print the training msg
+                        msg = "Epoch [{}/{}], Step [{}/{}], Train Loss: {:.4f}, Valid Loss: {:.4f}".format(
+                            epoch + 1,
+                            epochs,
+                            global_step,
+                            epochs * len(training_loader),
+                            average_train_loss,
+                            average_valid_loss,
+                        )
+                        if verbose == True:
+                            if print_logs == True:
+                                # print the training msg
                                 print(msg)
                             logger.log(msg)
                         if best_valid_loss > average_valid_loss:
