@@ -26,7 +26,7 @@ def parse_arguments():
     parser.add_argument(
         "--max_len", type=int, default=512, help="max length to padding"
     )
-    parser.add_argument("--epochs", type=int, default=5, help="epoch of training ")
+    parser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
     parser.add_argument(
         "--model_name", type=str, default="customBERT", help="name of the model"
     )

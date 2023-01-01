@@ -32,7 +32,7 @@ class Trainer:
     def get_loader(self):
         # dataset settings
         g = torch.Generator().manual_seed(42)
-        if self.params.valid_enable:
+        if self.params.valid_enable is not True:
             train_size = self.params.frac
             df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
             train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
