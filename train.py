@@ -31,35 +31,58 @@ class Trainer:
 
     def get_loader(self):
         # dataset settings
-        train_size = self.params.frac
-        df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-        train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
-            drop=True
-        )
-        test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
-        # dataloader random seed
         g = torch.Generator().manual_seed(42)
-        # get the train set and test set
-        train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
-        test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
-        train_params = {
-            "batch_size": self.params.train_batch,
-            "shuffle": True,
-            "num_workers": 0,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
+        if self.params.valid_enable:
+            train_size = self.params.frac
+            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
+                drop=True
+            )
+            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+            # get the train set and test set
+            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            train_params = {
+                "batch_size": self.params.train_batch,
+                "shuffle": True,
+                "num_workers": 0,
+                "worker_init_fn": seed_worker,
+                "generator": g,
+            }
 
-        test_params = {
-            "batch_size": self.params.test_batch,
-            "shuffle": True,
-            "num_workers": 0,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
+            test_params = {
+                "batch_size": self.params.test_batch,
+                "shuffle": True,
+                "num_workers": 0,
+                "worker_init_fn": seed_worker,
+                "generator": g,
+            }
 
-        training_loader = DataLoader(train_set, **train_params)
-        testing_loader = DataLoader(test_set, **test_params)
+            training_loader = DataLoader(train_set, **train_params)
+            testing_loader = DataLoader(test_set, **test_params)
+        else:
+            train_dataset=pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+            test_dataset=pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset))
+            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            train_params = {
+                "batch_size": self.params.train_batch,
+                "shuffle": True,
+                "num_workers": 0,
+                "worker_init_fn": seed_worker,
+                "generator": g,
+            }
+
+            test_params = {
+                "batch_size": self.params.test_batch,
+                "shuffle": True,
+                "num_workers": 0,
+                "worker_init_fn": seed_worker,
+                "generator": g,
+            }
+
+            training_loader = DataLoader(train_set, **train_params)
+            testing_loader = DataLoader(test_set, **test_params)
         return training_loader, testing_loader
 
     def get_path(self, name):
@@ -72,11 +95,12 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(
-        self,
-        best_valid_loss=float("Inf"),
-        validate=True,
+            self,
+            best_valid_loss=float("Inf"),
+            validate=True,
     ):
         seed_everything(42)
+
 
         # get the datasloader
         training_loader, testing_loader = self.get_loader()
@@ -187,7 +211,7 @@ class Trainer:
                             )
                             model.config.to_json_file(file_path + "/" + "config.json")
         if validate:
-            validation(logger, testing_loader, model)
+            validation(logger, testing_loader, model,self.device)
 
         save_metrics(
             file_path + "/" + "metrics.pt",
@@ -202,7 +226,6 @@ class Trainer:
             f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
         )
         print("Finished Training!")
-
 
 # define the model
 # config = BertConfig(hidden_size=768, label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)

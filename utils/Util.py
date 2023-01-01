@@ -3,10 +3,8 @@ import numpy as np
 import torch
 from transformers import BertTokenizer
 from torchtext.data import Field, TabularDataset, BucketIterator, Iterator
-from torch.utils.data import Dataset
 import CONFIG
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_PATH)
 # bert tokenizer parameters
 MAX_SEQ_LEN = 128

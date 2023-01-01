@@ -11,9 +11,11 @@ def parse_arguments():
     parser.add_argument(
         "--dataset",
         type=str,
-        default="real_and_fake_new/train.csv",
+        default="real_and_fake/train.csv",
         help="dataset name",
     )
+    parser.add_argument("--valid_enable", type=bool, default=False, help="enable cross domain validation")
+    parser.add_argument("--valid_dataset", type=str, default="real_and_fake/test.csv", help="cross domain validate set")
     parser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
     parser.add_argument(
         "--train_batch", type=int, default=8, help="training set batch size"

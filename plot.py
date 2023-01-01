@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 
-from train import testing_loader
-from utils.Util import load_metrics, device
+from utils.Util import load_metrics
 import CONFIG
 from models.layers import customBERT
 from transformers import BertConfig
