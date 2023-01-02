@@ -23,11 +23,14 @@ class BERT(nn.Module):
 class customBERT(nn.Module):
     def __init__(self, config, params):
         super(customBERT, self).__init__()
+        self.params = params
+        dropout = self.params.dropout
+
         # load the bert with provided config
         self.config = config
         pretrained_model = CONFIG.BERT_PATH
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
-        self.l2 = torch.nn.Dropout(params.dropout)
+        self.l2 = torch.nn.Dropout(dropout)
         # classification layer
         self.l3 = torch.nn.Linear(768, 1)
 

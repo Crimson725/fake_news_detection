@@ -1,7 +1,9 @@
+import argparse
 import random, os
 import numpy as np
+import pandas as pd
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
 import CONFIG
 
@@ -101,3 +103,143 @@ class CustomDataset(Dataset):
                 -1
             ),
         }
+
+
+class customDataloader:
+    def __init__(self, params):
+        self.params = params
+
+    def get_loader(self):
+        def seed_worker(worker_id):
+            worker_seed = self.params.seed
+            np.random.seed(worker_seed)
+            random.seed(worker_seed)
+
+        g = torch.Generator()
+        g.manual_seed(self.params.seed)
+
+        train_loader_params = {
+            "batch_size": self.params.train_batch,
+            "shuffle": True,
+            "worker_init_fn": seed_worker,
+            "generator": g,
+        }
+        test_loader_params = {
+            "batch_size": self.params.test_batch,
+            "shuffle": True,
+            "worker_init_fn": seed_worker,
+            "generator": g,
+        }
+        # dataset settings
+        if self.params.valid_enable is False:
+            train_size = self.params.frac
+            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
+                drop=True
+            )
+            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+
+            # get the train set and test set
+            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
+        else:
+            train_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
+            )
+            test_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
+            )
+            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
+        return training_loader, testing_loader
+
+
+def get_parser():
+    argparser = argparse.ArgumentParser(
+        description="Arg parser for fake news detection"
+    )
+    argparser.add_argument(
+        "--mode",
+        type=str,
+        choices=["train", "eval"],
+        required=True,
+        help="choose the mode",
+    )
+    argparser.add_argument("--seed", type=int, default=42, help="seed")
+    argparser.add_argument("--cuda", type=int, default=0, help="device id")
+    argparser.add_argument(
+        "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
+    )
+    argparser.add_argument(
+        "--valid_enable",
+        action="store_true",
+        default=True,
+        help="enable cross domain validation",
+    )
+    group = argparser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--frac",
+        type=float,
+        default=None,
+        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
+    )
+    group.add_argument(
+        "--valid_dataset",
+        type=str,
+        default=None,
+        help="the path to the validation dataset (only when valid_enable is True)",
+    )
+    argparser.add_argument(
+        "--train_eval", type=bool, default=False, help="train and evaluate"
+    )
+
+    argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
+    argparser.add_argument(
+        "--train_batch", type=int, default=8, help="training set batch size"
+    )
+    argparser.add_argument(
+        "--test_batch", type=int, default=8, help="validation set batch size"
+    )
+    argparser.add_argument(
+        "--eval_every", type=int, default=5, help="evaluate every n step"
+    )
+    argparser.add_argument(
+        "--max_len", type=int, default=512, help="max length to padding"
+    )
+    argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
+    argparser.add_argument(
+        "--dropout", type=float, default=0.5, help="dropout rate of the model"
+    )
+    argparser.add_argument("--l2", type=float, default=None, help="l2 regularization")
+    argparser.add_argument(
+        "--model_name", type=str, default="customBERT", help="name of the model"
+    )
+
+    argparser.add_argument(
+        "--log_args",
+        type=bool,
+        default=True,
+        help="log the args of the training process",
+    )
+    argparser.add_argument(
+        "--verbose",
+        type=bool,
+        default=True,
+        help="log verbose (loss) info of the training process",
+    )
+    argparser.add_argument(
+        "--print_logs",
+        type=bool,
+        default=False,
+        help="print the verbose info of the training process",
+    )
+    eval_group = argparser.add_argument_group("eval")
+    eval_group.add_argument(
+        "--model_path", type=str, default=None, help="path to the model"
+    )
+    args = argparser.parse_args()
+    return args

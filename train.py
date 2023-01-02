@@ -7,14 +7,14 @@ from torch import optim
 from torch.utils.data import DataLoader
 from transformers import BertConfig
 from models.layers import customBERT
-from utils.Util import save_checkpoint, save_metrics, seed_everything
-from utils.Util import CustomDataset, tokenizer
+from utils.Util import save_checkpoint, save_metrics, seed_everything, load_checkpoint
+from utils.Util import CustomDataset, tokenizer, customDataloader
 from utils.logger import Logger
 import time
 import datetime
 import CONFIG
 import os
-from eval import validation
+from eval import Evaluator
 from tensorboardX import SummaryWriter
 
 
@@ -70,7 +70,6 @@ class Trainer:
             test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
-            self.train_set, self.test_set = self.params.dataset
         else:
             train_dataset = pd.read_csv(
                 os.path.join(CONFIG.DATA_PATH, self.params.dataset)
@@ -82,8 +81,6 @@ class Trainer:
             test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
-            self.train_set = self.params.dataset
-            self.test_set = self.params.valid_dataset
         return training_loader, testing_loader
 
     def get_path(self, name):
@@ -92,23 +89,24 @@ class Trainer:
         tf_path = os.path.join(file_path, "tf_logs")
         os.mkdir(file_path)
         os.mkdir(tf_path)
-        # get the tflogger
         return file_path, tf_path
 
     def train_customBERT(
         self,
         best_valid_loss=float("Inf"),
-        validate=True,
     ):
-
+        loader = customDataloader(self.params)
         # get the dataloader
-        training_loader, testing_loader = self.get_loader()
+        training_loader, testing_loader = loader.get_loader()
 
         # get the model
         model = self.model
         model_name = self.model_name
         # make the path to save the log and models
         file_path, tf_path = self.get_path(model_name)
+        model_path = file_path + "/" + "model.pt"
+        best_metrics_path = file_path + "/" + "best_metrics.pt"
+        metrics_path = file_path + "/" + "metrics.pt"
         # train/valid loss
         running_loss = 0
         valid_running_loss = 0
@@ -127,6 +125,10 @@ class Trainer:
         model.train()
         start_time = time.time()
         logger.log("Start training...")
+        logger.log("Training size: {}".format(len(training_loader.dataset)))
+        logger.log("Test size: {}".format(len(testing_loader.dataset)))
+
+        logger.log("--------------------Args--------------------")
         # print and log args
         if self.params.log_args:
             for k, v in vars(self.params).items():
@@ -138,6 +140,8 @@ class Trainer:
         optimizer = self.optimizer
         verbose = self.params.verbose
         print_logs = self.params.print_logs
+        logger.log("--------------------Loss--------------------")
+
         for epoch in range(epochs):
             for _, data in enumerate(training_loader):
                 ids = data["ids"].to(self.device, dtype=torch.long)
@@ -147,10 +151,15 @@ class Trainer:
                 )
                 targets = data["targets"].to(self.device, dtype=torch.float)
 
-                output = model(ids, mask, token_type_ids)
-                loss = loss_fn(output, targets)
                 optimizer.zero_grad()
-                loss.backward()
+                output = model(ids, mask, token_type_ids)
+                if self.params.l2 is not None:
+                    l2_loss = torch.sum(model.l3.weight**3) * self.params.l2
+                    loss = loss_fn(output, targets) + l2_loss
+                    loss.backward()
+                else:
+                    loss = loss_fn(output, targets)
+                    loss.backward()
                 optimizer.step()
 
                 running_loss += loss.item()
@@ -205,21 +214,28 @@ class Trainer:
                             logger.log(msg)
                         if best_valid_loss > average_valid_loss:
                             best_valid_loss = average_valid_loss
-                            save_checkpoint(
-                                file_path + "/" + "model.pt", model, best_valid_loss
-                            )
+                            save_checkpoint(model_path, model, best_valid_loss)
                             save_metrics(
-                                file_path + "/" + "metrics.pt",
+                                best_metrics_path,
                                 train_loss_list,
                                 valid_loss_list,
                                 global_step_list,
                             )
                             model.config.to_json_file(file_path + "/" + "config.json")
-        if validate:
-            validation(logger, testing_loader, model, self.device)
+        if self.params.valid_enable:
+            eval_model = self.model
+            evaluator = Evaluator(
+                eval_model,
+                testing_loader,
+                device=self.device,
+                params=None,
+                model_path=model_path,
+            )
+            logger.log("--------------------Evaluation--------------------")
+            evaluator.validation(logger)
 
         save_metrics(
-            file_path + "/" + "metrics.pt",
+            metrics_path,
             train_loss_list,
             valid_loss_list,
             global_step_list,

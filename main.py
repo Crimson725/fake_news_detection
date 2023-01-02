@@ -2,74 +2,11 @@ import argparse
 from train import Trainer
 import os
 from utils.Util import seed_everything
+from utils.Util import get_parser
+import platform
 
 # set the environment variable
-os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Arg parser for fake news detection")
-    parser.add_argument("--seed", type=int, default=42, help="seed")
-    parser.add_argument("--cuda", type=int, default=0, help="device id")
-    parser.add_argument("--dataset", type=str, default="real_and_fake/train.csv", help="dataset")
-    parser.add_argument(
-        "--valid_enable",
-        action="store_true",
-        default=True,
-        help="enable cross domain validation",
-    )
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--frac",
-        type=float,
-        default=None,
-        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
-    )
-    group.add_argument(
-        "--valid_dataset",
-        type=str,
-        default=None,
-        help="the path to the validation dataset (only when valid_enable is True)",
-    )
-
-    parser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
-    parser.add_argument(
-        "--train_batch", type=int, default=8, help="training set batch size"
-    )
-    parser.add_argument(
-        "--test_batch", type=int, default=8, help="validation set batch size"
-    )
-    parser.add_argument("--eval_every", type=int, default=5, help="evaluate every n step")
-    parser.add_argument(
-        "--max_len", type=int, default=512, help="max length to padding"
-    )
-    parser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    parser.add_argument(
-        "--dropout", type=float, default=0.5, help="dropout rate of the model"
-    )
-    parser.add_argument(
-        "--model_name", type=str, default="customBERT", help="name of the model"
-    )
-
-    parser.add_argument(
-        "--log_args",
-        type=bool,
-        default=True,
-        help="log the args of the training process",
-    )
-    parser.add_argument(
-        "--verbose",
-        type=bool,
-        default=True,
-        help="log verbose (loss) info of the training process",
-    )
-    parser.add_argument(
-        "--print_logs",
-        type=bool,
-        default=False,
-        help="print the verbose info of the training process",
-    )
-    args = parser.parse_args()
-    return args
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 
 def main(params):
@@ -78,6 +15,7 @@ def main(params):
 
 
 if __name__ == "__main__":
-    params = parse_arguments()
-    seed_everything(params.seed)
+    params = get_parser()
+    if platform.system() == "Linux":
+        seed_everything(params.seed)
     main(params)
