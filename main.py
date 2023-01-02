@@ -9,6 +9,7 @@ def parse_arguments():
     parser.add_argument(
         "--valid_enable",
         type=bool,
+        action="store_true",
         default=True,
         help="enable cross domain validation",
     )
