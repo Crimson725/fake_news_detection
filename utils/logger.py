@@ -15,6 +15,5 @@ class Logger:
         file_handler1.setFormatter(formatter1)
         self.logger.addHandler(file_handler1)
 
-
     def log(self, message):
         self.logger.info(message)

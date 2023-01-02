@@ -7,7 +7,10 @@ def parse_arguments():
     parser.add_argument("--seed", type=int, default=42, help="seed")
     parser.add_argument("--cuda", type=int, default=0, help="device id")
     parser.add_argument(
-        "--frac", type=float, default=0.75, help="ration of train set & test set (only for valid_enable=False)"
+        "--frac",
+        type=float,
+        default=0.75,
+        help="ration of train set & test set (only for valid_enable=False)",
     )
     parser.add_argument(
         "--dataset",
@@ -45,7 +48,12 @@ def parse_arguments():
         "--model_name", type=str, default="customBERT", help="name of the model"
     )
 
-    parser.add_argument("--log_args", type=bool, default=True, help="log the args of the training process")
+    parser.add_argument(
+        "--log_args",
+        type=bool,
+        default=True,
+        help="log the args of the training process",
+    )
     parser.add_argument(
         "--verbose",
         type=bool,

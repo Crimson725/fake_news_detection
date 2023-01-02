@@ -1,3 +1,5 @@
+import random
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -36,15 +38,25 @@ class Trainer:
         seed_everything(self.params.seed)
 
     def get_loader(self):
+        def seed_worker(worker_id):
+            worker_seed = self.params.seed
+            np.random.seed(worker_seed)
+            random.seed(worker_seed)
+
+        g = torch.Generator()
+        g.manual_seed(self.params.seed)
+
         train_loader_params = {
             "batch_size": self.params.train_batch,
             "shuffle": True,
-            "random_seed": self.params.seed,
+            "worker_init_fn": seed_worker,
+            "generator": g,
         }
         test_loader_params = {
             "batch_size": self.params.test_batch,
             "shuffle": True,
-            "random_seed": self.params.seed,
+            "worker_init_fn": seed_worker,
+            "generator": g,
         }
         # dataset settings
         if self.params.valid_enable is False:
@@ -86,9 +98,9 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(
-            self,
-            best_valid_loss=float("Inf"),
-            validate=True,
+        self,
+        best_valid_loss=float("Inf"),
+        validate=True,
     ):
         seed_everything(42)
 
@@ -122,7 +134,7 @@ class Trainer:
         if self.params.log_args:
             for k, v in vars(self.params).items():
                 logger.log(f"{k} = {v}")
-                print(f'{k} = {v}')
+                print(f"{k} = {v}")
         #  training args
         epochs = self.epochs
         loss_fn = self.loss_fn
