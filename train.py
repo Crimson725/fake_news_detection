@@ -35,7 +35,6 @@ class Trainer:
         self.train_set = None
         self.test_set = None
 
-        seed_everything(self.params.seed)
 
     def get_loader(self):
         def seed_worker(worker_id):
@@ -102,7 +101,7 @@ class Trainer:
         best_valid_loss=float("Inf"),
         validate=True,
     ):
-        seed_everything(42)
+        seed_everything(self.params.seed)
 
         # get the dataloader
         training_loader, testing_loader = self.get_loader()
