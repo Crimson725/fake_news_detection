@@ -1,8 +1,8 @@
 import random, os
 import numpy as np
 import torch
+from torch.utils.data import Dataset
 from transformers import BertTokenizer
-from torchtext.data import Field, TabularDataset, BucketIterator, Iterator
 import CONFIG
 
 tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_PATH)
@@ -28,7 +28,7 @@ def seed_everything(seed: int):
 
 
 def seed_worker(worker_id):
-    worker_seed = torch.initial_seed() % 2**32
+    worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
@@ -72,73 +72,6 @@ def load_metrics(path):
         state_dict["valid_loss_list"],
         state_dict["global_steps_list"],
     )
-
-
-labels = {"fake": 0, "real": 1}
-
-
-class Dataset:
-    def __init__(self, path):
-        self.label_field = Field(
-            sequential=False, use_vocab=False, batch_first=True, dtype=torch.float
-        )
-        self.text_field = Field(
-            use_vocab=False,
-            tokenize=tokenizer.encode,
-            lower=False,
-            batch_first=True,
-            include_lengths=False,
-            fix_length=MAX_SEQ_LEN,
-            pad_token=PAD_INDEX,
-            unk_token=UNK_INDEX,
-        )
-        # self.attention_mask_field = Field(sequential=False, use_vocab=False, dtype=torch.long, tokenize=lambda x:
-        # tokenizer(x, add_special_tokens=True, return_attention_mask=True, return_tensors='pt')['attention_mask'])
-        self.fields = [
-            ("label", self.label_field),
-            ("title", self.text_field),
-            ("text", self.text_field),
-            ("titletext", self.text_field),
-        ]
-
-        self.train, self.valid, self.test = TabularDataset.splits(
-            path=path,
-            train="train.csv",
-            validation="valid.csv",
-            test="test.csv",
-            format="CSV",
-            fields=self.fields,
-            skip_header=True,
-        )
-        self.train_iter = BucketIterator(
-            self.train,
-            batch_size=16,
-            sort_key=lambda x: len(x.text),
-            device=device,
-            train=True,
-            sort=True,
-            sort_within_batch=True,
-        )
-        self.valid_iter = BucketIterator(
-            self.valid,
-            batch_size=16,
-            sort_key=lambda x: len(x.text),
-            device=device,
-            train=True,
-            sort=True,
-            sort_within_batch=True,
-        )
-        self.test_iter = Iterator(
-            self.test,
-            batch_size=16,
-            device=device,
-            train=False,
-            shuffle=False,
-            sort=False,
-        )
-
-    def __len__(self):
-        return len(self.train) + len(self.valid) + len(self.test)
 
 
 class CustomDataset(Dataset):

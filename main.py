@@ -6,7 +6,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Arg parser for fake news detection")
     parser.add_argument("--cuda", type=int, default=0, help="device id")
     parser.add_argument(
-        "--frac", type=float, default=0.75, help="ration of train set & test set"
+        "--frac", type=float, default=0.75, help="ration of train set & test set (only for valid_enable=False)"
     )
     parser.add_argument(
         "--dataset",
@@ -17,7 +17,7 @@ def parse_arguments():
     parser.add_argument(
         "--valid_enable",
         type=bool,
-        default=False,
+        default=True,
         help="enable cross domain validation",
     )
     parser.add_argument(
@@ -38,30 +38,30 @@ def parse_arguments():
     )
     parser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
     parser.add_argument(
+        "--dropout", type=float, default=0.5, help="dropout rate of the model"
+    )
+    parser.add_argument(
         "--model_name", type=str, default="customBERT", help="name of the model"
     )
+
+    parser.add_argument("--log_args", type=bool, default=True, help="log the args of the training process")
     parser.add_argument(
         "--verbose",
         type=bool,
         default=True,
-        help="log verbose info of the training process",
+        help="log verbose (loss) info of the training process",
     )
     parser.add_argument(
         "--print_logs",
         type=bool,
         default=False,
-        help="print the logs of the training process",
-    )
-    parser.add_argument(
-        "--dropout", type=float, default=0.5, help="dropout rate of the model"
+        help="print the verbose info of the training process",
     )
     args = parser.parse_args()
     return args
 
 
-def main(params=None):
-    if params is None:
-        raise ("YOU SHOULD SPECIFY THE PARAMS")
+def main(params):
     trainer = Trainer(params)
     trainer.train_customBERT()
 

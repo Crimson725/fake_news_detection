@@ -105,9 +105,9 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(
-        self,
-        best_valid_loss=float("Inf"),
-        validate=True,
+            self,
+            best_valid_loss=float("Inf"),
+            validate=True,
     ):
         seed_everything(42)
 
@@ -137,12 +137,19 @@ class Trainer:
         model.train()
         start_time = time.time()
         logger.log("Start training...")
-        if self.params.valid_enable:
-            logger.log("Cross Validation enabled")
-            logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
-        else:
-            logger.log("Cross Validation disabled")
-            logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
+        # if self.params.valid_enable:
+        #     logger.log("Cross Validation enabled")
+        #     logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
+        # else:
+        #     logger.log("Cross Validation disabled")
+        #     logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
+
+        # print and log args
+        if self.params.log_args:
+            for k, v in vars(self.params).items():
+                logger.verbose(f"{k} = {v}")
+                print(f'{k} = {v}')
+        #  training args
         epochs = self.epochs
         loss_fn = self.loss_fn
         optimizer = self.optimizer
@@ -241,7 +248,6 @@ class Trainer:
             f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
         )
         print("Finished Training!")
-
 
 # define the model
 # config = BertConfig(hidden_size=768, label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
