@@ -118,7 +118,7 @@ class Trainer:
         global_step_list = []
 
         # eval setting
-        eval_every = len(training_loader) // 2
+        eval_every = len(training_loader) // self.params.eval_every
         # get the logger
         logger = Logger("Training", file_path)
         tflogger = SummaryWriter(tf_path)

@@ -38,6 +38,7 @@ def parse_arguments():
     parser.add_argument(
         "--test_batch", type=int, default=8, help="validation set batch size"
     )
+    parser.add_argument("--eval_every", type=int, default=5, help="evaluate every n step")
     parser.add_argument(
         "--max_len", type=int, default=512, help="max length to padding"
     )
