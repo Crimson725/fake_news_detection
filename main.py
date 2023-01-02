@@ -1,6 +1,7 @@
 import argparse
 from train import Trainer
 import os
+from utils.Util import seed_everything
 
 # set the environment variable
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
@@ -77,4 +78,5 @@ def main(params):
 
 if __name__ == "__main__":
     params = parse_arguments()
+    seed_everything(params.seed)
     main(params)

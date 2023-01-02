@@ -18,6 +18,7 @@ def seed_everything(seed):
     torch.use_deterministic_algorithms(True)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+        # torch.backends.cudnn.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
 

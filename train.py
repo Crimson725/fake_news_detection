@@ -100,7 +100,6 @@ class Trainer:
         best_valid_loss=float("Inf"),
         validate=True,
     ):
-        seed_everything(self.params.seed)
 
         # get the dataloader
         training_loader, testing_loader = self.get_loader()
