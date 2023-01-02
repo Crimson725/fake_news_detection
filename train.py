@@ -5,7 +5,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from transformers import BertConfig
 from models.layers import customBERT
-from utils.Util import save_checkpoint, save_metrics, seed_everything, seed_worker
+from utils.Util import save_checkpoint, save_metrics, seed_everything
 from utils.Util import CustomDataset, tokenizer
 from utils.logger import Logger
 import time
