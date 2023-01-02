@@ -1,14 +1,17 @@
 import argparse
 from train import Trainer
+import os
 
+# set the environment variable
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Arg parser for fake news detection")
     parser.add_argument("--seed", type=int, default=42, help="seed")
     parser.add_argument("--cuda", type=int, default=0, help="device id")
+    parser.add_argument("--dataset", type=str, default="real_and_fake/train.csv", help="dataset")
     parser.add_argument(
         "--valid_enable",
-        type=bool,
         action="store_true",
         default=True,
         help="enable cross domain validation",
