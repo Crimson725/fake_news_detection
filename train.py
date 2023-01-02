@@ -33,9 +33,20 @@ class Trainer:
         self.train_set = None
         self.test_set = None
 
+        seed_everything(self.params.seed)
+
     def get_loader(self):
+        train_loader_params = {
+            "batch_size": self.params.train_batch,
+            "shuffle": True,
+            "random_seed": self.params.seed,
+        }
+        test_loader_params = {
+            "batch_size": self.params.test_batch,
+            "shuffle": True,
+            "random_seed": self.params.seed,
+        }
         # dataset settings
-        g = torch.Generator().manual_seed(42)
         if self.params.valid_enable is False:
             train_size = self.params.frac
             df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
@@ -43,26 +54,12 @@ class Trainer:
                 drop=True
             )
             test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+
             # get the train set and test set
             train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
             test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
-            train_params = {
-                "batch_size": self.params.train_batch,
-                "shuffle": True,
-                "num_workers": 0,
-                "worker_init_fn": seed_worker,
-                "generator": g,
-            }
-
-            test_params = {
-                "batch_size": self.params.test_batch,
-                "shuffle": True,
-                "num_workers": 0,
-                "worker_init_fn": seed_worker,
-                "generator": g,
-            }
-            training_loader = DataLoader(train_set, **train_params)
-            testing_loader = DataLoader(test_set, **test_params)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
             self.train_set, self.test_set = self.params.dataset
         else:
             train_dataset = pd.read_csv(
@@ -73,24 +70,8 @@ class Trainer:
             )
             train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
             test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
-            train_params = {
-                "batch_size": self.params.train_batch,
-                "shuffle": True,
-                "num_workers": 0,
-                "worker_init_fn": seed_worker,
-                "generator": g,
-            }
-
-            test_params = {
-                "batch_size": self.params.test_batch,
-                "shuffle": True,
-                "num_workers": 0,
-                "worker_init_fn": seed_worker,
-                "generator": g,
-            }
-
-            training_loader = DataLoader(train_set, **train_params)
-            testing_loader = DataLoader(test_set, **test_params)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
             self.train_set = self.params.dataset
             self.test_set = self.params.valid_dataset
         return training_loader, testing_loader
@@ -111,7 +92,7 @@ class Trainer:
     ):
         seed_everything(42)
 
-        # get the datasloader
+        # get the dataloader
         training_loader, testing_loader = self.get_loader()
 
         # get the model
@@ -137,17 +118,10 @@ class Trainer:
         model.train()
         start_time = time.time()
         logger.log("Start training...")
-        # if self.params.valid_enable:
-        #     logger.log("Cross Validation enabled")
-        #     logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
-        # else:
-        #     logger.log("Cross Validation disabled")
-        #     logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
-
         # print and log args
         if self.params.log_args:
             for k, v in vars(self.params).items():
-                logger.verbose(f"{k} = {v}")
+                logger.log(f"{k} = {v}")
                 print(f'{k} = {v}')
         #  training args
         epochs = self.epochs
@@ -248,38 +222,3 @@ class Trainer:
             f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
         )
         print("Finished Training!")
-
-# define the model
-# config = BertConfig(hidden_size=768, label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-# model = BERT(config).to(device)
-# define the optimizer
-# optimizer = optim.Adam(model.parameters(), lr=1e-6)
-
-# define the datasets for original bert
-# dataset = Dataset(CONFIG.DATA_PATH)
-# train_loader = dataset.train_iter
-# valid_loader = dataset.valid_iter
-# test_loader = dataset.train_iter
-
-
-# train original BERT
-# seed_everything(42)
-# train(model, optimizer=optimizer, train_loader=train_loader, valid_loader=valid_loader,
-#       num_epochs=EPOCHS, eval_every=len(train_loader) // 2, file_path=file_path)
-
-
-# train custom BERT
-
-
-# train_customBERT(
-#     model,
-#     loss_fn=torch.nn.BCELoss(),
-#     optimizer=optimizer,
-#     train_loader=training_loader,
-#     valid_loader=testing_loader,
-#     num_epochs=EPOCHS,
-#     eval_every=len(training_loader) // 2,
-#     file_path=file_path,
-#     validate=True,
-#     tflogger=tflogger,
-# )
