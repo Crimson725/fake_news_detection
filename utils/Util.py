@@ -15,6 +15,7 @@ UNK_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.unk_token)
 def seed_everything(seed):
     random.seed(seed)
     torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(True)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True

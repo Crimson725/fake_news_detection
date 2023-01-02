@@ -16,7 +16,6 @@ def parse_arguments():
     group.add_argument(
         "--frac",
         type=float,
-        default=0.75,
         help="the fraction of the dataset to use for validation (only when valid_enable is False)",
     )
     group.add_argument(
