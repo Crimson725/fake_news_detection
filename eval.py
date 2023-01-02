@@ -42,7 +42,7 @@ def evaluate(model, test_loader):
 
 
 # for new
-def validation(logger, testing_loader, model,device):
+def validation(logger, testing_loader, model, device):
     model.eval()
     fin_targets = []
     fin_outputs = []

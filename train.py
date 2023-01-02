@@ -18,6 +18,7 @@ from tensorboardX import SummaryWriter
 
 class Trainer:
     def __init__(self, params):
+
         self.params = params
 
         self.device = torch.device(torch.device("cuda:{}".format(self.params.cuda)))
@@ -27,12 +28,15 @@ class Trainer:
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr)
-        self.model_name = params.model_name
+        self.model_name = self.params.model_name
+
+        self.train_set = None
+        self.test_set = None
 
     def get_loader(self):
         # dataset settings
         g = torch.Generator().manual_seed(42)
-        if self.params.valid_enable is not True:
+        if self.params.valid_enable is False:
             train_size = self.params.frac
             df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
             train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
@@ -57,12 +61,16 @@ class Trainer:
                 "worker_init_fn": seed_worker,
                 "generator": g,
             }
-
             training_loader = DataLoader(train_set, **train_params)
             testing_loader = DataLoader(test_set, **test_params)
+            self.train_set, self.test_set = self.params.dataset
         else:
-            train_dataset=pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-            test_dataset=pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset))
+            train_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
+            )
+            test_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
+            )
             train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
             test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
             train_params = {
@@ -83,6 +91,8 @@ class Trainer:
 
             training_loader = DataLoader(train_set, **train_params)
             testing_loader = DataLoader(test_set, **test_params)
+            self.train_set = self.params.dataset
+            self.test_set = self.params.valid_dataset
         return training_loader, testing_loader
 
     def get_path(self, name):
@@ -95,12 +105,11 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(
-            self,
-            best_valid_loss=float("Inf"),
-            validate=True,
+        self,
+        best_valid_loss=float("Inf"),
+        validate=True,
     ):
         seed_everything(42)
-
 
         # get the datasloader
         training_loader, testing_loader = self.get_loader()
@@ -128,6 +137,12 @@ class Trainer:
         model.train()
         start_time = time.time()
         logger.log("Start training...")
+        if self.params.valid_enable:
+            logger.log("Cross Validation enabled")
+            logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
+        else:
+            logger.log("Cross Validation disabled")
+            logger.log(f"Train set: {self.train_set}, Valid set: {self.test_set}")
         epochs = self.epochs
         loss_fn = self.loss_fn
         optimizer = self.optimizer
@@ -193,8 +208,8 @@ class Trainer:
                             average_train_loss,
                             average_valid_loss,
                         )
-                        if verbose == True:
-                            if print_logs == True:
+                        if verbose:
+                            if print_logs:
                                 # print the training msg
                                 print(msg)
                             logger.log(msg)
@@ -211,7 +226,7 @@ class Trainer:
                             )
                             model.config.to_json_file(file_path + "/" + "config.json")
         if validate:
-            validation(logger, testing_loader, model,self.device)
+            validation(logger, testing_loader, model, self.device)
 
         save_metrics(
             file_path + "/" + "metrics.pt",
@@ -226,6 +241,7 @@ class Trainer:
             f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
         )
         print("Finished Training!")
+
 
 # define the model
 # config = BertConfig(hidden_size=768, label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
