@@ -35,7 +35,6 @@ class Trainer:
         self.train_set = None
         self.test_set = None
 
-
     def get_loader(self):
         def seed_worker(worker_id):
             worker_seed = self.params.seed

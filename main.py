@@ -16,6 +16,7 @@ def parse_arguments():
     group.add_argument(
         "--frac",
         type=float,
+        default=0.75,
         help="the fraction of the dataset to use for validation (only when valid_enable is False)",
     )
     group.add_argument(
@@ -25,12 +26,6 @@ def parse_arguments():
         help="the path to the validation dataset (only when valid_enable is True)",
     )
 
-    parser.add_argument(
-        "--valid_dataset",
-        type=str,
-        default="real_and_fake/test.csv",
-        help="cross domain validate set",
-    )
     parser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
     parser.add_argument(
         "--train_batch", type=int, default=8, help="training set batch size"
