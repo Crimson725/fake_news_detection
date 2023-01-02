@@ -7,23 +7,25 @@ def parse_arguments():
     parser.add_argument("--seed", type=int, default=42, help="seed")
     parser.add_argument("--cuda", type=int, default=0, help="device id")
     parser.add_argument(
-        "--frac",
-        type=float,
-        default=0.75,
-        help="ration of train set & test set (only for valid_enable=False)",
-    )
-    parser.add_argument(
-        "--dataset",
-        type=str,
-        default="real_and_fake/train.csv",
-        help="dataset name",
-    )
-    parser.add_argument(
         "--valid_enable",
         type=bool,
         default=True,
         help="enable cross domain validation",
     )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--frac",
+        type=float,
+        default=0.75,
+        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
+    )
+    group.add_argument(
+        "--valid_dataset",
+        type=str,
+        default="real_and_fake/train.csv",
+        help="the path to the validation dataset (only when valid_enable is True)",
+    )
+
     parser.add_argument(
         "--valid_dataset",
         type=str,
