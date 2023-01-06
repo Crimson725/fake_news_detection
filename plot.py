@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 
-from utils.Util import load_metrics
+from utils.common_util import load_metrics
 import CONFIG
 from models.layers import customBERT
 from transformers import BertConfig

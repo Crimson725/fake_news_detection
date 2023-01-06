@@ -11,7 +11,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 
 from models.layers import customBERT
-from utils.Util import load_checkpoint, customDataloader, seed_everything, get_parser
+from utils.common_util import load_checkpoint, Dataloader_train, seed_everything, get_parser
 
 
 # TODO: REWRITE THE VALIDATION FUNCTION
@@ -19,7 +19,7 @@ class Evaluator:
     def __init__(
         self, model, testing_loader=None, device=None, params=None, model_path=None
     ):
-        loader = customDataloader(params)
+        loader = Dataloader_train(params)
         self.model = model
         if params is None:
             self.device = device
@@ -92,17 +92,4 @@ class Evaluator:
                 f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}, Recall Score = {recall}, Report: {report}"
             )
 
-def main(params):
-    config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-    device = torch.device(torch.device("cuda:{}".format(params.cuda)))
-    model = customBERT(config, params).to(device)
-    loader = customDataloader(params)
-    _, testing_loader = loader.get_loader()
-    evaluator = Evaluator(model, testing_loader=testing_loader, params=params)
-    evaluator.validation()
 
-if __name__ == "__main__":
-    params = get_parser()
-    if platform.system() == "Linux":
-        seed_everything(params.seed)
-    main(params)
