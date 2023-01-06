@@ -7,8 +7,8 @@ from torch import optim
 from torch.utils.data import DataLoader
 from transformers import BertConfig
 from models.layers import customBERT
-from utils.Util import save_checkpoint, save_metrics, seed_everything, load_checkpoint
-from utils.Util import CustomDataset, tokenizer, customDataloader
+from utils.common_util import save_checkpoint, save_metrics, seed_everything, load_checkpoint
+from utils.common_util import CustomDataset, tokenizer, Dataloader_train
 from utils.logger import Logger
 import time
 import datetime
@@ -95,7 +95,7 @@ class Trainer:
         self,
         best_valid_loss=float("Inf"),
     ):
-        loader = customDataloader(self.params)
+        loader = Dataloader_train(self.params)
         # get the dataloader
         training_loader, testing_loader = loader.get_loader()
 
