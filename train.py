@@ -29,7 +29,7 @@ class Trainer:
         self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr,weight_decay=self.params.weight_decay)
         self.model_name = self.params.model_name
 
         self.train_set = None
@@ -130,6 +130,7 @@ class Trainer:
 
         logger.log("--------------------Args--------------------")
         # print and log args
+        print("--------------------Args--------------------")
         if self.params.log_args:
             for k, v in vars(self.params).items():
                 logger.log(f"{k} = {v}")
@@ -141,7 +142,6 @@ class Trainer:
         verbose = self.params.verbose
         print_logs = self.params.print_logs
         logger.log("--------------------Loss--------------------")
-
         for epoch in range(epochs):
             for _, data in enumerate(training_loader):
                 ids = data["ids"].to(self.device, dtype=torch.long)

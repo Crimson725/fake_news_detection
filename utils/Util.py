@@ -214,7 +214,8 @@ def get_parser():
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
-    argparser.add_argument("--l2", type=float, default=None, help="l2 regularization")
+    argparser.add_argument("--weight_decay", type=float, default=0.0, help="weight decay of adam")
+    # argparser.add_argument("--l2", type=float, default=None, help="l2 regularization")
     argparser.add_argument(
         "--model_name", type=str, default="customBERT", help="name of the model"
     )

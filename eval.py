@@ -92,17 +92,17 @@ class Evaluator:
                 f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}, Recall Score = {recall}, Report: {report}"
             )
 
-    def main(params):
-        config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-        device = torch.device(torch.device("cuda:{}".format(params.cuda)))
-        model = customBERT(config, params).to(device)
-        loader = customDataloader(params)
-        _, testing_loader = loader.get_loader()
-        evaluator = Evaluator(model, testing_loader=testing_loader, params=params)
-        evaluator.validation()
+def main(params):
+    config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
+    device = torch.device(torch.device("cuda:{}".format(params.cuda)))
+    model = customBERT(config, params).to(device)
+    loader = customDataloader(params)
+    _, testing_loader = loader.get_loader()
+    evaluator = Evaluator(model, testing_loader=testing_loader, params=params)
+    evaluator.validation()
 
-    if __name__ == "__main__":
-        params = get_parser()
-        if platform.system() == "Linux":
-            seed_everything(params.seed)
-        main(params)
+if __name__ == "__main__":
+    params = get_parser()
+    if platform.system() == "Linux":
+        seed_everything(params.seed)
+    main(params)
