@@ -153,13 +153,13 @@ class Trainer:
 
                 optimizer.zero_grad()
                 output = model(ids, mask, token_type_ids)
-                if self.params.l2 is not None:
-                    l2_loss = torch.sum(model.l3.weight**3) * self.params.l2
-                    loss = loss_fn(output, targets) + l2_loss
-                    loss.backward()
-                else:
-                    loss = loss_fn(output, targets)
-                    loss.backward()
+                # if self.params.l2 is not None:
+                #     l2_loss = torch.sum(model.l3.weight**3) * self.params.l2
+                #     loss = loss_fn(output, targets) + l2_loss
+                #     loss.backward()
+                # else:
+                loss = loss_fn(output, targets)
+                loss.backward()
                 optimizer.step()
 
                 running_loss += loss.item()
