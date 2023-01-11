@@ -52,7 +52,7 @@ class customBERT(nn.Module):
         )
         if hasattr(self, "lstm") and hasattr(self, "multihead_attention"):
             lstm_output, _ = self.lstm(bert_output)
-            multihead_output, _ = self.multihead_attention(bert_output)
+            multihead_output, _ = self.multihead_attention(bert_output,bert_output,bert_output)
             cat_lstm_multihead = torch.cat((lstm_output, multihead_output), dim=-1)
             dropout_output = self.dropout(cat_lstm_multihead)
             classifier_output = self.classifier(dropout_output)
@@ -65,7 +65,7 @@ class customBERT(nn.Module):
             final_output = torch.sigmoid(classifier_output)
             return final_output
         elif hasattr(self, "multihead_attention"):
-            multihead_output, _ = self.multihead_attention(bert_output)
+            multihead_output, _ = self.multihead_attention(bert_output,bert_output,bert_output)
             dropout_output = self.dropout(multihead_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
