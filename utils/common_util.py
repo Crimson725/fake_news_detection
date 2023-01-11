@@ -196,92 +196,94 @@ def get_parser():
     )
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
-    # train args
-    train_group = argparser.add_argument_group("train")
-
-    train_group.add_argument(
-        "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
-    )
-    train_group.add_argument(
-        "--valid_enable",
-        action="store_true",
-        default=True,
-        help="validation using another dataset",
-    )
-    valid_enable_group = train_group.add_mutually_exclusive_group(required=True)
-    valid_enable_group.add_argument(
-        "--frac",
-        type=float,
-        default=None,
-        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
-    )
-    valid_enable_group.add_argument(
-        "--valid_dataset",
-        type=str,
-        default=None,
-        help="the path to the validation dataset (only when valid_enable is True)",
-    )
-    train_group.add_argument(
-        "--train_eval", type=bool, default=False, help="train and evaluate"
-    )
-
-    train_group.add_argument("--lr", type=float, default=1e-5, help="learning rate")
-    train_group.add_argument(
-        "--train_batch", type=int, default=8, help="training set batch size"
-    )
-    train_group.add_argument(
-        "--test_batch", type=int, default=8, help="validation set batch size"
-    )
-    train_group.add_argument(
-        "--eval_every", type=int, default=5, help="evaluate every n step"
-    )
-    train_group.add_argument(
-        "--max_len", type=int, default=512, help="max length to padding"
-    )
-    train_group.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    train_group.add_argument("--lstm", type=bool, default=False, help="use lstm")
-    train_group.add_argument("--multihead_attention", type=bool, default=False, help="use multihead attention")
-    train_group.add_argument(
-        "--dropout", type=float, default=0.5, help="dropout rate of the model"
-    )
-    train_group.add_argument("--early_stop_patience", type=int, default=5, help="early stop patience")
-
-    train_group.add_argument("--weight_decay", type=float, default=0.0, help="weight decay of adam")
-    train_group.add_argument(
-        "--model_name", type=str, default="customBERT", help="name of the model"
-    )
-
-    train_group.add_argument(
-        "--log_args",
-        type=bool,
-        default=True,
-        help="log the args of the training process",
-    )
-    train_group.add_argument(
-        "--verbose",
-        type=bool,
-        default=True,
-        help="log verbose (loss) info of the training process",
-    )
-    train_group.add_argument(
-        "--print_logs",
-        type=bool,
-        default=False,
-        help="print the verbose info of the training process",
-    )
-    # eval args
-    eval_group = argparser.add_argument_group("eval")
-    eval_group.add_argument(
-        "--model_path", type=str, default=None, help="path to the model"
-    )
-    eval_group.add_argument("--eval_dataset", type=str, default=None, help="path to the evaluation dataset")
-
     args = argparser.parse_args()
     if args.mode == 'train':
+        train_group = argparser.add_argument_group("train")
+        train_group.add_argument(
+            "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
+        )
+        train_group.add_argument(
+            "--valid_enable",
+            action="store_true",
+            default=True,
+            help="validation using another dataset",
+        )
+        valid_enable_group = train_group.add_mutually_exclusive_group(required=True)
+        valid_enable_group.add_argument(
+            "--frac",
+            type=float,
+            default=None,
+            help="the fraction of the dataset to use for validation (only when valid_enable is False)",
+        )
+        valid_enable_group.add_argument(
+            "--valid_dataset",
+            type=str,
+            default=None,
+            help="the path to the validation dataset (only when valid_enable is True)",
+        )
+        train_group.add_argument(
+            "--train_eval", type=bool, default=False, help="train and evaluate"
+        )
+
+        train_group.add_argument("--lr", type=float, default=1e-5, help="learning rate")
+        train_group.add_argument(
+            "--train_batch", type=int, default=8, help="training set batch size"
+        )
+        train_group.add_argument(
+            "--test_batch", type=int, default=8, help="validation set batch size"
+        )
+        train_group.add_argument(
+            "--eval_every", type=int, default=5, help="evaluate every n step"
+        )
+        train_group.add_argument(
+            "--max_len", type=int, default=512, help="max length to padding"
+        )
+        train_group.add_argument("--epochs", type=int, default=1, help="epoch of training ")
+        train_group.add_argument("--lstm", type=bool, default=False, help="use lstm")
+        train_group.add_argument("--multihead_attention", type=bool, default=False, help="use multihead attention")
+        train_group.add_argument(
+            "--dropout", type=float, default=0.5, help="dropout rate of the model"
+        )
+        train_group.add_argument("--early_stop_patience", type=int, default=5, help="early stop patience")
+
+        train_group.add_argument("--weight_decay", type=float, default=0.0, help="weight decay of adam")
+        train_group.add_argument(
+            "--model_name", type=str, default="customBERT", help="name of the model"
+        )
+
+        train_group.add_argument(
+            "--log_args",
+            type=bool,
+            default=True,
+            help="log the args of the training process",
+        )
+        train_group.add_argument(
+            "--verbose",
+            type=bool,
+            default=True,
+            help="log verbose (loss) info of the training process",
+        )
+        train_group.add_argument(
+            "--print_logs",
+            type=bool,
+            default=False,
+            help="print the verbose info of the training process",
+        )
         argparser.add_argument_group(train_group)
         train_args = argparser.parse_args()
         return train_args
     else:
+        eval_group = argparser.add_argument_group("eval")
+        eval_group.add_argument(
+            "--model_path", type=str, default=None, help="path to the model"
+        )
+        eval_group.add_argument("--eval_dataset", type=str, default=None, help="path to the evaluation dataset")
+
         argparser.add_argument_group(eval_group)
         eval_args = argparser.parse_args()
         return eval_args
+
+
+
+
+
