@@ -38,12 +38,15 @@ class customBERT(nn.Module):
         if self.params.lstm:
             # hidden_size corresponds to bert
             self.lstm = nn.LSTM(
-                input_size=768, hidden_size=768, num_layers=1, bidirectional=True
+                input_size=768,
+                hidden_size=768,
+                num_layers=self.params.num_layers,
+                bidirectional=True,
             )
         # initialize multihead attention layer
         if self.params.multihead_attention:
             self.multihead_attention = nn.MultiheadAttention(
-                embed_dim=768, num_heads=12
+                embed_dim=768, num_heads=self.params.num_heads
             )
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)

@@ -188,7 +188,7 @@ class Dataloader_eval:
 def get_train_parser():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-        epilog='For example: python trainer.py --seed 42 --cuda 5 --dataset "LUN/lun_train_comparenet.csv"  --valid_dataset "LUN/lun_test_comparenet.csv" --weight_decay 0.5 --epochs 5 --lstm True --multihead_attention True',
+        epilog='For example: python trainer.py --seed 42 --cuda 5 --dataset "LUN/lun_train_comparenet.csv"  --valid_dataset "LUN/lun_test_comparenet.csv" --weight_decay 0.5 --epochs 5 --lstm True --num_layers 1 --multihead_attention True --num_heads 12',
     )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
@@ -234,12 +234,31 @@ def get_train_parser():
         "--max_len", type=int, default=512, help="max length to padding"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    argparser.add_argument("--lstm", type=bool, default=False, help="use lstm")
+    argparser.add_argument(
+        "--lstm",
+        action="store_true",
+        default=True,
+        help="use lstm",
+    )
+    lstm_group = argparser.add_mutually_exclusive_group(required=True)
+    lstm_group.add_argument(
+        "--num_layers",
+        type=int,
+        default=None,
+        help="layers of lstm (only when lstm is True)",
+    )
     argparser.add_argument(
         "--multihead_attention",
         type=bool,
-        default=False,
+        default=True,
         help="use multihead attention",
+    )
+    multihead_attention_group = argparser.add_mutually_exclusive_group(required=True)
+    multihead_attention_group.add_argument(
+        "--num_heads",
+        type=int,
+        default=None,
+        help="heads of multihead attention (only when multihead_attention is True)",
     )
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
@@ -280,7 +299,7 @@ def get_train_parser():
 def get_eval_parser():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-        epilog="For example:",
+        epilog="For example: python eval.py --seed 42 --cuda 5 --model_path model_path/model.pt --eval_dataset datasets/eval_dataset.csv",
     )
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
