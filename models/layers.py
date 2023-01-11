@@ -37,7 +37,7 @@ class customBERT(nn.Module):
         # initialize lstm layer
         if self.params.lstm:
             # hidden_size corresponds to bert
-            self.lstm = nn.LSTM(hidden_size=768, num_layers=1, bidirectional=True)
+            self.lstm = nn.LSTM(input_size=768,hidden_size=768, num_layers=1, bidirectional=True)
         # initialize multihead attention layer
         if self.params.multihead_attention:
             self.multihead_attention = nn.MultiheadAttention(embed_dim=768, num_heads=12)
