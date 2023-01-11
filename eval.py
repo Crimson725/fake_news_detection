@@ -15,11 +15,13 @@ import seaborn as sns
 from models.layers import customBERT
 from utils.common_util import (
     load_checkpoint,
-    Dataloader_train,
     Dataloader_eval,
     get_eval_parser,
     seed_everything,
 )
+
+# set the environment variable
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 
 # TODO: REWRITE THE VALIDATION FUNCTION
