@@ -44,7 +44,8 @@ class customBERT(nn.Module):
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
         # add classification layer
-        self.classifier = torch.nn.Linear(768, 1)
+        if self.params.multihead_attention:
+            self.classifier = torch.nn.Linear(768*3, 1)
 
     def forward(self, ids, mask, token_type_ids):
         _, bert_output = self.l1(
