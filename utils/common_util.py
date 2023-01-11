@@ -277,6 +277,12 @@ def get_parser():
     )
     eval_group.add_argument("--eval_dataset", type=str, default=None, help="path to the evaluation dataset")
 
-
     args = argparser.parse_args()
-    return args
+    if args.mode == 'train':
+        argparser.add_argument_group(train_group)
+        train_args = argparser.parse_args()
+        return train_args
+    else:
+        argparser.add_argument_group(eval_group)
+        eval_args = argparser.parse_args()
+        return eval_args
