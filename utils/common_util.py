@@ -194,10 +194,11 @@ def get_parser():
         required=True,
         help="choose the mode",
     )
+    argparser.add_argument("--seed", type=int, default=42, help="seed")
+    argparser.add_argument("--cuda", type=int, default=0, help="device id")
     # train args
     train_group = argparser.add_argument_group("train")
-    train_group.add_argument("--seed", type=int, default=42, help="seed")
-    train_group.add_argument("--cuda", type=int, default=0, help="device id")
+
     train_group.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
     )
@@ -270,8 +271,6 @@ def get_parser():
     )
     # eval args
     eval_group = argparser.add_argument_group("eval")
-    eval_group.add_argument("--seed", type=int, default=42, help="seed")
-    eval_group.add_argument("--cuda", type=int, default=0, help="device id")
     eval_group.add_argument(
         "--model_path", type=str, default=None, help="path to the model"
     )
