@@ -37,17 +37,21 @@ class customBERT(nn.Module):
         # initialize lstm layer
         if self.params.lstm:
             # hidden_size corresponds to bert
-            self.lstm = nn.LSTM(input_size=768,hidden_size=768, num_layers=1, bidirectional=True)
+            self.lstm = nn.LSTM(
+                input_size=768, hidden_size=768, num_layers=1, bidirectional=True
+            )
         # initialize multihead attention layer
         if self.params.multihead_attention:
-            self.multihead_attention = nn.MultiheadAttention(embed_dim=768, num_heads=12)
+            self.multihead_attention = nn.MultiheadAttention(
+                embed_dim=768, num_heads=12
+            )
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
         # add classification layer
         if self.params.multihead_attention:
-            self.classifier = torch.nn.Linear(768*3, 1)
+            self.classifier = torch.nn.Linear(768 * 3, 1)
         else:
-            self.classifier = torch.nn.Linear(768,1)
+            self.classifier = torch.nn.Linear(768, 1)
 
     def forward(self, ids, mask, token_type_ids):
         _, bert_output = self.l1(
@@ -55,7 +59,9 @@ class customBERT(nn.Module):
         )
         if hasattr(self, "lstm") and hasattr(self, "multihead_attention"):
             lstm_output, _ = self.lstm(bert_output)
-            multihead_output, _ = self.multihead_attention(bert_output,bert_output,bert_output)
+            multihead_output, _ = self.multihead_attention(
+                bert_output, bert_output, bert_output
+            )
             cat_lstm_multihead = torch.cat((lstm_output, multihead_output), dim=-1)
             dropout_output = self.dropout(cat_lstm_multihead)
             classifier_output = self.classifier(dropout_output)
@@ -68,7 +74,9 @@ class customBERT(nn.Module):
             final_output = torch.sigmoid(classifier_output)
             return final_output
         elif hasattr(self, "multihead_attention"):
-            multihead_output, _ = self.multihead_attention(bert_output,bert_output,bert_output)
+            multihead_output, _ = self.multihead_attention(
+                bert_output, bert_output, bert_output
+            )
             dropout_output = self.dropout(multihead_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)

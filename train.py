@@ -8,7 +8,12 @@ from torch import optim
 from torch.utils.data import DataLoader
 from transformers import BertConfig
 from models.layers import customBERT
-from utils.common_util import save_checkpoint, save_metrics, seed_everything, load_checkpoint
+from utils.common_util import (
+    save_checkpoint,
+    save_metrics,
+    seed_everything,
+    load_checkpoint,
+)
 from utils.common_util import CustomDataset, tokenizer, Dataloader_train
 from utils.logger import Logger
 import time
@@ -30,7 +35,11 @@ class Trainer:
         self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr, weight_decay=self.params.weight_decay)
+        self.optimizer = optim.Adam(
+            self.model.parameters(),
+            lr=self.params.lr,
+            weight_decay=self.params.weight_decay,
+        )
         self.model_name = self.params.model_name
 
         self.train_set = None
@@ -94,10 +103,7 @@ class Trainer:
         os.mkdir(tf_path)
         return file_path, tf_path
 
-    def train_customBERT(
-            self,
-            best_valid_loss=float("Inf")
-    ):
+    def train_customBERT(self, best_valid_loss=float("Inf")):
         loader = Dataloader_train(self.params)
         # get the dataloader
         training_loader, testing_loader = loader.get_loader()
@@ -232,7 +238,9 @@ class Trainer:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
                             print("Early stopping")
-                            logger.log(f"Early stopping in step:{global_step}/{epochs * len(training_loader)}")
+                            logger.log(
+                                f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
+                            )
         if self.params.valid_enable:
             eval_model = self.model
             evaluator = Evaluator(
