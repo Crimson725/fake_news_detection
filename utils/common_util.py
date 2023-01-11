@@ -188,7 +188,7 @@ class Dataloader_eval:
 def get_train_parser():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-        epilog='For example: python main.py --seed 42 --cuda 5 --dataset "LUN/lun_train_comparenet.csv"  --valid_dataset "LUN/lun_test_comparenet.csv" --weight_decay 0.5 --epochs 5 --lstm True --multihead_attention True',
+        epilog='For example: python trainer.py --seed 42 --cuda 5 --dataset "LUN/lun_train_comparenet.csv"  --valid_dataset "LUN/lun_test_comparenet.csv" --weight_decay 0.5 --epochs 5 --lstm True --multihead_attention True',
     )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
