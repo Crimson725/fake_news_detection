@@ -159,8 +159,9 @@ class Dataloader_train:
 
 
 class Dataloader_eval:
-    def __init__(self, params):
+    def __init__(self, params, train_args):
         self.params = params
+        self.train_args = train_args
 
     def get_loader(self):
         def seed_worker(worker_id):
@@ -171,13 +172,15 @@ class Dataloader_eval:
         g = torch.Generator()
         g.manual_seed(self.params.seed)
         eval_loader_params = {
-            "batch_size": self.params.test_batch,
+            "batch_size": self.train_args.test_batch,
             "shuffle": True,
             "worker_init_fn": seed_worker,
             "generator": g,
         }
-        eval_dataset = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset))
-        eval_set = CustomDataset(eval_dataset, tokenizer, self.params.max_len)
+        eval_dataset = pd.read_csv(
+            os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
+        )
+        eval_set = CustomDataset(eval_dataset, tokenizer, self.train_args.max_len)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
 
@@ -185,7 +188,8 @@ class Dataloader_eval:
 def get_train_parser():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-        epilog="For example: python main.py --seed 42 --cuda 5 --dataset \"LUN/lun_train_comparenet.csv\"  --valid_dataset \"LUN/lun_test_comparenet.csv\" --weight_decay 0.5 --epochs 5 --lstm True --multihead_attention True")
+        epilog='For example: python trainer.py --seed 42 --cuda 5 --dataset "LUN/lun_train_comparenet.csv"  --valid_dataset "LUN/lun_test_comparenet.csv" --weight_decay 0.5 --epochs 5 --lstm True --multihead_attention True',
+    )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
@@ -231,13 +235,22 @@ def get_train_parser():
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
     argparser.add_argument("--lstm", type=bool, default=False, help="use lstm")
-    argparser.add_argument("--multihead_attention", type=bool, default=False, help="use multihead attention")
+    argparser.add_argument(
+        "--multihead_attention",
+        type=bool,
+        default=False,
+        help="use multihead attention",
+    )
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
-    argparser.add_argument("--early_stop_patience", type=int, default=5, help="early stop patience")
+    argparser.add_argument(
+        "--early_stop_patience", type=int, default=5, help="early stop patience"
+    )
 
-    argparser.add_argument("--weight_decay", type=float, default=0.0, help="weight decay of adam")
+    argparser.add_argument(
+        "--weight_decay", type=float, default=0.0, help="weight decay of adam"
+    )
     argparser.add_argument(
         "--model_name", type=str, default="customBERT", help="name of the model"
     )
@@ -267,13 +280,16 @@ def get_train_parser():
 def get_eval_parser():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-        epilog="For example:")
+        epilog="For example:",
+    )
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
     argparser.add_argument(
         "--model_path", type=str, default=None, help="path to the model"
     )
-    argparser.add_argument("--eval_dataset", type=str, default=None, help="path to the evaluation dataset")
+    argparser.add_argument(
+        "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
+    )
 
     args = argparser.parse_args()
     return args
