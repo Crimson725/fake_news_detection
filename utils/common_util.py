@@ -274,6 +274,75 @@ def get_eval_parser():
         "--model_path", type=str, default=None, help="path to the model"
     )
     argparser.add_argument("--eval_dataset", type=str, default=None, help="path to the evaluation dataset")
+    argparser.add_argument(
+        "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
+    )
+    argparser.add_argument(
+        "--valid_enable",
+        action="store_true",
+        default=True,
+        help="validation using another dataset",
+    )
+    valid_enable_group = argparser.add_mutually_exclusive_group(required=True)
+    valid_enable_group.add_argument(
+        "--frac",
+        type=float,
+        default=None,
+        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
+    )
+    valid_enable_group.add_argument(
+        "--valid_dataset",
+        type=str,
+        default=None,
+        help="the path to the validation dataset (only when valid_enable is True)",
+    )
+    argparser.add_argument(
+        "--train_eval", type=bool, default=False, help="train and evaluate"
+    )
 
+    argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
+    argparser.add_argument(
+        "--train_batch", type=int, default=8, help="training set batch size"
+    )
+    argparser.add_argument(
+        "--test_batch", type=int, default=8, help="validation set batch size"
+    )
+    argparser.add_argument(
+        "--eval_every", type=int, default=5, help="evaluate every n step"
+    )
+    argparser.add_argument(
+        "--max_len", type=int, default=512, help="max length to padding"
+    )
+    argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
+    argparser.add_argument("--lstm", type=bool, default=False, help="use lstm")
+    argparser.add_argument("--multihead_attention", type=bool, default=False, help="use multihead attention")
+    argparser.add_argument(
+        "--dropout", type=float, default=0.5, help="dropout rate of the model"
+    )
+    argparser.add_argument("--early_stop_patience", type=int, default=5, help="early stop patience")
+
+    argparser.add_argument("--weight_decay", type=float, default=0.0, help="weight decay of adam")
+    argparser.add_argument(
+        "--model_name", type=str, default="customBERT", help="name of the model"
+    )
+
+    argparser.add_argument(
+        "--log_args",
+        type=bool,
+        default=True,
+        help="log the args of the training process",
+    )
+    argparser.add_argument(
+        "--verbose",
+        type=bool,
+        default=True,
+        help="log verbose (loss) info of the training process",
+    )
+    argparser.add_argument(
+        "--print_logs",
+        type=bool,
+        default=False,
+        help="print the verbose info of the training process",
+    )
     args = argparser.parse_args()
     return args
