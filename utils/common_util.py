@@ -237,7 +237,7 @@ def get_train_parser():
     argparser.add_argument(
         "--lstm",
         action="store_true",
-        default=True,
+        default=False,
         help="use lstm",
     )
     lstm_group = argparser.add_mutually_exclusive_group(required=True)
@@ -250,7 +250,7 @@ def get_train_parser():
     argparser.add_argument(
         "--multihead_attention",
         action="store_true",
-        default=True,
+        default=False,
         help="use multihead attention",
     )
     multihead_attention_group = argparser.add_mutually_exclusive_group(required=True)
