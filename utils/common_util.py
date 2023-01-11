@@ -240,7 +240,7 @@ def get_parser():
     )
     train_group.add_argument("--epochs", type=int, default=1, help="epoch of training ")
     train_group.add_argument("--lstm", type=bool, default=False, help="use lstm")
-    train_group.add_argument("-multihead_attention", type=bool, default=False, help="use multihead attention")
+    train_group.add_argument("--multihead_attention", type=bool, default=False, help="use multihead attention")
     train_group.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
