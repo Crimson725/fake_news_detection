@@ -208,7 +208,7 @@ def get_parser():
         default=True,
         help="validation using another dataset",
     )
-    valid_enable_group = argparser.add_mutually_exclusive_group(required=True)
+    valid_enable_group = train_group.add_mutually_exclusive_group(required=True)
     valid_enable_group.add_argument(
         "--frac",
         type=float,
