@@ -249,7 +249,7 @@ def get_train_parser():
     )
     argparser.add_argument(
         "--multihead_attention",
-        type=bool,
+        action="store_true",
         default=True,
         help="use multihead attention",
     )
