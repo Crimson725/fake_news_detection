@@ -29,11 +29,13 @@ class Trainer:
         self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr,weight_decay=self.params.weight_decay)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.params.lr, weight_decay=self.params.weight_decay)
         self.model_name = self.params.model_name
 
         self.train_set = None
         self.test_set = None
+
+        self.early_stop_patience = self.params.early_stop_patience
 
     def get_loader(self):
         def seed_worker(worker_id):
@@ -92,8 +94,8 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(
-        self,
-        best_valid_loss=float("Inf"),
+            self,
+            best_valid_loss=float("Inf")
     ):
         loader = Dataloader_train(self.params)
         # get the dataloader
@@ -114,6 +116,8 @@ class Trainer:
         train_loss_list = []
         valid_loss_list = []
         global_step_list = []
+        # early stop counter
+        early_stop_counter = 0
 
         # eval setting
         eval_every = len(training_loader) // self.params.eval_every
@@ -153,11 +157,7 @@ class Trainer:
 
                 optimizer.zero_grad()
                 output = model(ids, mask, token_type_ids)
-                # if self.params.l2 is not None:
-                #     l2_loss = torch.sum(model.l3.weight**3) * self.params.l2
-                #     loss = loss_fn(output, targets) + l2_loss
-                #     loss.backward()
-                # else:
+
                 loss = loss_fn(output, targets)
                 loss.backward()
                 optimizer.step()
@@ -214,6 +214,7 @@ class Trainer:
                             logger.log(msg)
                         if best_valid_loss > average_valid_loss:
                             best_valid_loss = average_valid_loss
+                            early_stop_counter = 0
                             save_checkpoint(model_path, model, best_valid_loss)
                             save_metrics(
                                 best_metrics_path,
@@ -222,6 +223,11 @@ class Trainer:
                                 global_step_list,
                             )
                             model.config.to_json_file(file_path + "/" + "config.json")
+                        else:
+                            early_stop_counter += 1
+                        if early_stop_counter >= self.early_stop_patience:
+                            print("Early stopping")
+                            logger.log(f"Early stopping in step:{global_step}/{epochs * len(training_loader)}")
         if self.params.valid_enable:
             eval_model = self.model
             evaluator = Evaluator(
