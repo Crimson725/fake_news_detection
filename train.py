@@ -1,3 +1,4 @@
+import pickle
 import random
 import numpy as np
 import pandas as pd
@@ -109,6 +110,10 @@ class Trainer:
         model_path = file_path + "/" + "model.pt"
         best_metrics_path = file_path + "/" + "best_metrics.pt"
         metrics_path = file_path + "/" + "metrics.pt"
+        train_args_path = file_path + "/" + "train_args.pkl"
+        # save the args
+        with open(train_args_path, "wb") as f:
+            pickle.dump(self.params, f)
         # train/valid loss
         running_loss = 0
         valid_running_loss = 0

@@ -1,3 +1,5 @@
+import os
+import pickle
 import platform
 
 import matplotlib.pyplot as plt
@@ -19,15 +21,12 @@ class Evaluator:
     def __init__(
             self, model, testing_loader=None, device=None, params=None, model_path=None
     ):
-        loader = Dataloader_train(params)
         self.model = model
+        self.testing_loader = testing_loader
+        self.device = device
         if params is None:
-            self.device = device
-            self.testing_loader = testing_loader
             load_checkpoint(model_path, self.model)
         else:
-            self.device = torch.device(torch.device("cuda:{}".format(params.cuda)))
-            _, self.testing_loader = loader.get_loader()
             load_checkpoint(params.model_path, self.model)
 
     # for the original BERT
@@ -94,12 +93,15 @@ class Evaluator:
 
 
 def eval(params):
+    train_args_path = os.path.join(os.path.dirname(params.model_path), "train_args.pkl")
+    with open(train_args_path, "rb") as f:
+        train_args = pickle.load(f)
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
-    model = customBERT(config, params).to(device)
+    model = customBERT(config, train_args).to(device)
     loader = Dataloader_eval(params)
     eval_loader = loader.get_loader()
-    evaluator = Evaluator(model, testing_loader=eval_loader, params=params)
+    evaluator = Evaluator(model, testing_loader=eval_loader, device=device, params=params)
     evaluator.validation()
 
 
