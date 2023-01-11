@@ -46,6 +46,8 @@ class customBERT(nn.Module):
         # add classification layer
         if self.params.multihead_attention:
             self.classifier = torch.nn.Linear(768*3, 1)
+        else:
+            self.classifier = torch.nn.Linear(768,1)
 
     def forward(self, ids, mask, token_type_ids):
         _, bert_output = self.l1(
