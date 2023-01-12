@@ -11,8 +11,6 @@ from models.layers import customBERT
 from utils.common_util import (
     save_checkpoint,
     save_metrics,
-    seed_everything,
-    load_checkpoint,
 )
 from utils.common_util import CustomDataset, tokenizer, Dataloader_train
 from utils.logger import Logger
@@ -104,6 +102,7 @@ class Trainer:
         return file_path, tf_path
 
     def train_customBERT(self, best_valid_loss=float("Inf")):
+
         loader = Dataloader_train(self.params)
         # get the dataloader
         training_loader, testing_loader = loader.get_loader()
@@ -241,6 +240,8 @@ class Trainer:
                             logger.log(
                                 f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
                             )
+                            break
+
         if self.params.valid_enable:
             eval_model = self.model
             evaluator = Evaluator(
