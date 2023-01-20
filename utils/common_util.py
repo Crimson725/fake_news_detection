@@ -117,7 +117,7 @@ class SentDataset(Dataset):
 
 
 class DocDataset(Dataset):
-    def __init__(self, dataframe, tokenizer, max_len, entity_encoder):
+    def __init__(self, dataframe, tokenizer, max_len):
         self.tokenizer = tokenizer
         self.data = dataframe
         self.text = dataframe.text
@@ -125,7 +125,6 @@ class DocDataset(Dataset):
         self.max_len = max_len
 
         # the entity encoder
-        self.entity_encoder = entity_encoder
 
     def __len__(self):
         return len(self.text)
@@ -158,7 +157,7 @@ class DocDataset(Dataset):
         }
 
 
-class Dataloader_train:
+class Docloader_train:
     def __init__(self, params):
         self.params = params
 
@@ -211,7 +210,7 @@ class Dataloader_train:
         return training_loader, testing_loader
 
 
-class Dataloader_eval:
+class Docloader_eval:
     def __init__(self, params, train_args):
         self.params = params
         self.train_args = train_args
@@ -234,6 +233,86 @@ class Dataloader_eval:
             os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
         )
         eval_set = DocDataset(eval_dataset, tokenizer, self.train_args.max_len)
+        eval_loader = DataLoader(eval_set, **eval_loader_params)
+        return eval_loader
+
+
+class Sentloader_train:
+    def __init__(self, params):
+        self.params = params
+
+    def get_loader(self):
+        def seed_worker(worker_id):
+            worker_seed = self.params.seed
+            np.random.seed(worker_seed)
+            random.seed(worker_seed)
+
+        g = torch.Generator()
+        g.manual_seed(self.params.seed)
+
+        train_loader_params = {
+            "batch_size": self.params.train_batch,
+            "shuffle": True,
+            "worker_init_fn": seed_worker,
+            "generator": g,
+        }
+        test_loader_params = {
+            "batch_size": self.params.test_batch,
+            "shuffle": True,
+            "worker_init_fn": seed_worker,
+            "generator": g,
+        }
+        # dataset settings
+        if self.params.valid_enable is False:
+            train_size = self.params.frac
+            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
+                drop=True
+            )
+            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+
+            # get the train set and test set
+            train_set = SentDataset(train_dataset, tokenizer)
+            test_set = SentDataset(test_dataset, tokenizer)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
+        else:
+            train_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
+            )
+            test_dataset = pd.read_csv(
+                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
+            )
+            train_set = SentDataset(train_dataset, tokenizer)
+            test_set = SentDataset(test_dataset, tokenizer)
+            training_loader = DataLoader(train_set, **train_loader_params)
+            testing_loader = DataLoader(test_set, **test_loader_params)
+        return training_loader, testing_loader
+
+
+class Sentloader_eval:
+    def __init__(self, params, train_args):
+        self.params = params
+        self.train_args = train_args
+
+    def get_loader(self):
+        def seed_worker(worker_id):
+            worker_seed = self.params.seed
+            np.random.seed(worker_seed)
+            random.seed(worker_seed)
+
+        g = torch.Generator()
+        g.manual_seed(self.params.seed)
+        eval_loader_params = {
+            "batch_size": self.train_args.test_batch,
+            "shuffle": True,
+            "worker_init_fn": seed_worker,
+            "generator": g,
+        }
+        eval_dataset = pd.read_csv(
+            os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
+        )
+        eval_set = SentDataset(eval_dataset, tokenizer)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
 

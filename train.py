@@ -1,19 +1,15 @@
 import pickle
-import random
-import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
 from torch import optim
-from torch.utils.data import DataLoader
 from transformers import BertConfig
 from models.layers import customBERT
 from utils.common_util import (
     save_checkpoint,
     save_metrics,
-    SentDataset,
+    Docloader_train,
+    Sentloader_train,
 )
-from utils.common_util import DocDataset, tokenizer, Dataloader_train
 from utils.logger import Logger
 import time
 import datetime
@@ -46,102 +42,6 @@ class Trainer:
 
         self.early_stop_patience = self.params.early_stop_patience
 
-    def get_doc_loader(self):
-        def seed_worker(worker_id):
-            worker_seed = self.params.seed
-            np.random.seed(worker_seed)
-            random.seed(worker_seed)
-
-        g = torch.Generator()
-        g.manual_seed(self.params.seed)
-
-        train_loader_params = {
-            "batch_size": self.params.train_batch,
-            "shuffle": True,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
-        test_loader_params = {
-            "batch_size": self.params.test_batch,
-            "shuffle": True,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
-        # dataset settings
-        if self.params.valid_enable is False:
-            train_size = self.params.frac
-            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
-                drop=True
-            )
-            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
-
-            # get the train set and test set
-            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
-        else:
-            train_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
-            )
-            test_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
-            )
-            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
-        return training_loader, testing_loader
-
-    def get_sent_loader(self):
-        def seed_worker(worker_id):
-            worker_seed = self.params.seed
-            np.random.seed(worker_seed)
-            random.seed(worker_seed)
-
-        g = torch.Generator()
-        g.manual_seed(self.params.seed)
-
-        train_loader_params = {
-            "batch_size": self.params.train_batch,
-            "shuffle": True,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
-        test_loader_params = {
-            "batch_size": self.params.test_batch,
-            "shuffle": True,
-            "worker_init_fn": seed_worker,
-            "generator": g,
-        }
-        # dataset settings
-        if self.params.valid_enable is False:
-            train_size = self.params.frac
-            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
-                drop=True
-            )
-            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
-
-            # get the train set and test set
-            train_set = SentDataset(train_dataset, tokenizer)
-            test_set = SentDataset(test_dataset, tokenizer)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
-        else:
-            train_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
-            )
-            test_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
-            )
-            train_set = SentDataset(train_dataset, tokenizer)
-            test_set = SentDataset(test_dataset, tokenizer)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
-        return training_loader, testing_loader
-
     def get_path(self, name):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
@@ -152,7 +52,7 @@ class Trainer:
 
     def train_doc(self, best_valid_loss=float("Inf")):
 
-        loader = Dataloader_train(self.params)
+        loader = Docloader_train(self.params)
         # get the dataloader
         training_loader, testing_loader = loader.get_loader()
 
@@ -319,7 +219,7 @@ class Trainer:
 
     def train_sent(self, best_valid_loss=float("Inf")):
 
-        loader = Dataloader_train(self.params)
+        loader = Sentloader_train(self.params)
         # get the dataloader
         training_loader, testing_loader = loader.get_loader()
 
@@ -404,8 +304,8 @@ class Trainer:
                                     ids = data["ids"][:, i].unsqueeze(1)
                                     mask = data["mask"][:, i].unsqueeze(1)
                                     token_type_ids = data["token_type_ids"][
-                                        :, i
-                                    ].unsqueeze(1)
+                                                     :, i
+                                                     ].unsqueeze(1)
                                     targets = data["targets"][i]
                                     # to device
                                     ids = ids.to(self.device, dtype=torch.long)
