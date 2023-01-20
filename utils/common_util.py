@@ -6,6 +6,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
 import CONFIG
+import nltk
+from nltk.tokenize import sent_tokenize
 
 tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_PATH)
 # bert tokenizer parameters
@@ -65,14 +67,65 @@ def load_metrics(path):
     )
 
 
-class CustomDataset(Dataset):
-    # TODO: ADD THE PATH FEATURE
-    def __init__(self, dataframe, tokenizer, max_len):
+class SentDataset(Dataset):
+    def __init__(self, dataframe, tokenizer):
         self.tokenizer = tokenizer
         self.data = dataframe
         self.text = dataframe.text
-        self.targets = self.data.label
+        self.targets = dataframe.label
+        self.max_len = 64
+
+        #         self.entity_encoder=entity_encoder
+        # sentence level
+        self.sentences = []
+        self.sent_targets = []
+        # slice into sentences
+        for i, doc in enumerate(self.text):
+            doc_sentences = sent_tokenize(doc)
+            for sentences in doc_sentences:
+                self.sentences.append(sentences)
+                self.sent_targets.append(self.targets[i])
+
+    def __len__(self):
+        return len(self.sentences)
+
+    def __getitem__(self, index):
+        text = str(self.sentences[index])
+        text = " ".join(text.split())
+
+        inputs = self.tokenizer.encode_plus(
+            text,
+            None,
+            truncation=True,
+            add_special_tokens=True,
+            max_length=self.max_len,
+            padding="max_length",
+            return_token_type_ids=True,
+        )
+        ids = inputs["input_ids"]
+        mask = inputs["attention_mask"]
+        token_type_ids = inputs["token_type_ids"]
+
+        return {
+            "ids": torch.tensor(ids, dtype=torch.long),
+            "mask": torch.tensor(mask, dtype=torch.long),
+            "token_type_ids": torch.tensor(token_type_ids, dtype=torch.long),
+            "targets": torch.tensor(
+                self.sent_targets[index], dtype=torch.float
+            ).unsqueeze(-1),
+        }
+
+
+class DocDataset(Dataset):
+    def __init__(self, dataframe, tokenizer, max_len, entity_encoder):
+        self.tokenizer = tokenizer
+        self.data = dataframe
+        self.text = dataframe.text
+        self.targets = dataframe.label
         self.max_len = max_len
+
+        # the entity encoder
+        self.entity_encoder = entity_encoder
 
     def __len__(self):
         return len(self.text)
@@ -140,8 +193,8 @@ class Dataloader_train:
             test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
 
             # get the train set and test set
-            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
         else:
@@ -151,8 +204,8 @@ class Dataloader_train:
             test_dataset = pd.read_csv(
                 os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
             )
-            train_set = CustomDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = CustomDataset(test_dataset, tokenizer, self.params.max_len)
+            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
+            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
         return training_loader, testing_loader
@@ -180,7 +233,7 @@ class Dataloader_eval:
         eval_dataset = pd.read_csv(
             os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
         )
-        eval_set = CustomDataset(eval_dataset, tokenizer, self.train_args.max_len)
+        eval_set = DocDataset(eval_dataset, tokenizer, self.train_args.max_len)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
 
@@ -193,7 +246,7 @@ def get_train_parser():
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
-
+    argparser.add_argument("--mode", type=str, default="doc", help="doc or sent")
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
     )
@@ -216,10 +269,6 @@ def get_train_parser():
         default=None,
         help="the path to the validation dataset (only when valid_enable is True)",
     )
-    argparser.add_argument(
-        "--train_eval", type=bool, default=False, help="train and evaluate"
-    )
-
     argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
     argparser.add_argument(
         "--train_batch", type=int, default=8, help="training set batch size"
@@ -231,7 +280,7 @@ def get_train_parser():
         "--eval_every", type=int, default=5, help="evaluate every n step"
     )
     argparser.add_argument(
-        "--max_len", type=int, default=512, help="max length to padding"
+        "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
     argparser.add_argument(

@@ -10,7 +10,10 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 def train(params):
     trainer = Trainer(params)
-    trainer.train_customBERT()
+    if params.mode == 'doc':
+        trainer.train_doc()
+    elif params.mode == 'sent':
+        trainer.train_sent()
 
 
 if __name__ == "__main__":
