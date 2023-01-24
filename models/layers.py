@@ -11,7 +11,7 @@ class BERT(nn.Module):
         super(BERT, self).__init__()
         # load the bert with provided config
         self.config = config
-        pretrained_model = CONFIG.BERT_PATH
+        pretrained_model = CONFIG.BERT_BASE_PATH
         self.encoder = BertForSequenceClassification.from_pretrained(
             pretrained_model, config=self.config
         )
@@ -24,13 +24,22 @@ class BERT(nn.Module):
 
 class customBERT(nn.Module):
     def __init__(self, config, params):
+        global size
+        global pretrained_model
+
         super(customBERT, self).__init__()
         self.params = params
         dropout = self.params.dropout
 
         # load the bert with provided config
         self.config = config
-        pretrained_model = CONFIG.BERT_PATH
+        if self.params.bert_type == "bert-base-uncased":
+            pretrained_model = CONFIG.BERT_BASE_PATH
+            size=768
+        elif self.params.bert_type == "bert-large-cased-whole-word-masking":
+            pretrained_model = CONFIG.BERT_LARGE_PATH
+            size=1024
+
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
         # initialize lstm and multihead attention
         self.lstm = None
@@ -42,23 +51,23 @@ class customBERT(nn.Module):
         if self.params.lstm:
             # hidden_size corresponds to bert
             self.lstm = nn.LSTM(
-                input_size=768,
-                hidden_size=768,
+                input_size=size,
+                hidden_size=size,
                 num_layers=self.params.num_layers,
                 bidirectional=True,
             )
         # initialize multihead attention layer
         if self.params.multihead_attention:
             self.multihead_attention = nn.MultiheadAttention(
-                embed_dim=768, num_heads=self.params.num_heads
+                embed_dim=size, num_heads=self.params.num_heads
             )
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
         # add classification layer
         if self.params.multihead_attention:
-            self.classifier = torch.nn.Linear(768 * 3, 1)
+            self.classifier = torch.nn.Linear(size * 3, 1)
         else:
-            self.classifier = torch.nn.Linear(768, 1)
+            self.classifier = torch.nn.Linear(size, 1)
 
 
     def forward(self, ids, mask, token_type_ids):

@@ -9,7 +9,7 @@ import CONFIG
 import nltk
 from nltk.tokenize import sent_tokenize
 
-tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_PATH)
+tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
 # bert tokenizer parameters
 MAX_SEQ_LEN = 128
 PAD_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
@@ -198,7 +198,6 @@ def get_train_parser():
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
-    argparser.add_argument("--mode", type=str, default="doc", help="doc or sent")
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
     )
@@ -235,6 +234,7 @@ def get_train_parser():
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
+    argparser.add_argument("--bert_type",type=str,default='bert-base-uncased',help="type of bert model")
     argparser.add_argument(
         "--lstm",
         action="store_true",
