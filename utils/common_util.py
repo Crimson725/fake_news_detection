@@ -201,7 +201,7 @@ def get_train_parser():
     )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
-    argparser.add_argument("--cuda", type=int, default=0, help="device id")
+    argparser.add_argument("--cuda", type=str, default='0', help="device id")
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
     )

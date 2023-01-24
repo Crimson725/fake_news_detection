@@ -22,8 +22,12 @@ class Trainer:
     def __init__(self, params):
 
         self.params = params
-
-        self.device = torch.device(torch.device("cuda:{}".format(self.params.cuda)))
+        if ',' in self.params.cuda:
+            # Use DataParallel for multiple GPUs
+            device = 'cuda'
+            os.environ["CUDA_VISIBLE_DEVICES"] = self.params.cuda
+        else:
+            self.device = torch.device(torch.device("cuda:{}".format(self.params.cuda)))
         # define the customBERT
         # load the default config
         if self.params.bert_type== "bert-base-uncased":
@@ -32,7 +36,11 @@ class Trainer:
             self.config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
             self.config.label2id = CONFIG.LABEL2ID
             self.config.id2label = CONFIG.ID2LABEL
-        self.model = customBERT(self.config, params=self.params).to(self.device)
+        if ',' in self.params.cuda:
+            self.model = customBERT(self.config, params=self.params).to(self.device)
+            self.model=nn.DataParallel(self.model)
+        else:
+            self.model = customBERT(self.config, params=self.params)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
         self.optimizer = optim.Adam(
