@@ -37,10 +37,10 @@ class Trainer:
             self.config.label2id = CONFIG.LABEL2ID
             self.config.id2label = CONFIG.ID2LABEL
         if ',' in self.params.cuda:
-            self.model = customBERT(self.config, params=self.params).to(self.device)
+            self.model = customBERT(self.config, params=self.params)
             self.model=nn.DataParallel(self.model)
         else:
-            self.model = customBERT(self.config, params=self.params)
+            self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs
         self.optimizer = optim.Adam(
