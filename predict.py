@@ -1,13 +1,6 @@
 from transformers import TextClassificationPipeline, BertForSequenceClassification
-import CONFIG
 from utils.common_util import tokenizer
-
-# previous version
-# model=BertForSequenceClassification.from_pretrained(myconfig.DESTINATION_PATH+'/'+'model.pt',config=config.DESTINATION_PATH+'/'+'config.json')
-# tokenizer=tokenizer
-#
-# classifier=TextClassificationPipeline(model=model,tokenizer=tokenizer)
-# res=classifier("who is this")
+# TODO: ADD A COMMAND LINE ENTRY POINT
 
 # new version
 model = BertForSequenceClassification.from_pretrained(
