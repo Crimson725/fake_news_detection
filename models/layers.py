@@ -40,6 +40,7 @@ class customBERT(nn.Module):
             pretrained_model = CONFIG.BERT_LARGE_PATH
             size=1024
 
+
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
         # initialize lstm and multihead attention
         self.lstm = None
