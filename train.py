@@ -25,7 +25,13 @@ class Trainer:
 
         self.device = torch.device(torch.device("cuda:{}".format(self.params.cuda)))
         # define the customBERT
-        self.config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
+        # load the default config
+        if self.params.bert_type== "bert-base-uncased":
+            self.config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
+        if self.params.bert_type=="bert-large-cased-whole-word-masking":
+            self.config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
+            self.config.label2id = CONFIG.LABEL2ID
+            self.config.id2label = CONFIG.ID2LABEL
         self.model = customBERT(self.config, params=self.params).to(self.device)
         self.loss_fn = nn.BCELoss()
         self.epochs = self.params.epochs

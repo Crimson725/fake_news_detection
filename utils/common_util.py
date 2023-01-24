@@ -6,14 +6,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
 import CONFIG
-import nltk
-from nltk.tokenize import sent_tokenize
 
-tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-# bert tokenizer parameters
-MAX_SEQ_LEN = 128
-PAD_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
-UNK_INDEX = tokenizer.convert_tokens_to_ids(tokenizer.unk_token)
+
+
 
 
 def seed_everything(seed):
@@ -70,12 +65,21 @@ def load_metrics(path):
 
 
 class DocDataset(Dataset):
-    def __init__(self, dataframe, tokenizer, max_len):
-        self.tokenizer = tokenizer
+    def __init__(self, dataframe,params):
         self.data = dataframe
         self.text = dataframe.text
         self.targets = dataframe.label
-        self.max_len = max_len
+        self.params=params
+        self.max_len = self.params.max_len
+        # get tokenizer
+        if self.params.bert_type=="bert-base-uncased":
+            self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
+        if self.params.bert_type=="bert-large-cased-whole-word-masking":
+            self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
+        # bert tokenizer parameters
+        # MAX_SEQ_LEN = 128
+        # PAD_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
+        # UNK_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.unk_token)
 
         # the entity encoder
 
@@ -145,8 +149,8 @@ class Docloader_train:
             test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
 
             # get the train set and test set
-            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
+            train_set = DocDataset(train_dataset, self.params)
+            test_set = DocDataset(test_dataset, self.params)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
         else:
@@ -156,8 +160,8 @@ class Docloader_train:
             test_dataset = pd.read_csv(
                 os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
             )
-            train_set = DocDataset(train_dataset, tokenizer, self.params.max_len)
-            test_set = DocDataset(test_dataset, tokenizer, self.params.max_len)
+            train_set = DocDataset(train_dataset, self.params)
+            test_set = DocDataset(test_dataset, self.params)
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
         return training_loader, testing_loader
@@ -185,7 +189,7 @@ class Docloader_eval:
         eval_dataset = pd.read_csv(
             os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
         )
-        eval_set = DocDataset(eval_dataset, tokenizer, self.train_args.max_len)
+        eval_set = DocDataset(eval_dataset, self.params)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
 
