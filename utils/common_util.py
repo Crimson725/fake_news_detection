@@ -241,30 +241,17 @@ def get_train_parser():
     argparser.add_argument("--bert_type",type=str,default='bert-base-uncased',help="type of bert model")
     argparser.add_argument(
         "--lstm",
-        action="store_true",
+        type=bool,
         default=False,
         help="use lstm",
     )
-    lstm_group = argparser.add_mutually_exclusive_group(required=True)
-    lstm_group.add_argument(
-        "--num_layers",
-        type=int,
-        default=None,
-        help="layers of lstm (only when lstm is True)",
-    )
     argparser.add_argument(
         "--multihead_attention",
-        action="store_true",
+        type=bool,
         default=False,
         help="use multihead attention",
     )
-    multihead_attention_group = argparser.add_mutually_exclusive_group(required=True)
-    multihead_attention_group.add_argument(
-        "--num_heads",
-        type=int,
-        default=None,
-        help="heads of multihead attention (only when multihead_attention is True)",
-    )
+
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
