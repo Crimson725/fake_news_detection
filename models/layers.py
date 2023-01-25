@@ -36,7 +36,7 @@ class customBERT(nn.Module):
         if self.params.bert_type == "bert-base-uncased":
             pretrained_model = CONFIG.BERT_BASE_PATH
             size=768
-        elif self.params.bert_type == "bert-large-cased-whole-word-masking":
+        elif self.params.bert_type == "bert-large-cased":
             pretrained_model = CONFIG.BERT_LARGE_PATH
             size=1024
 

@@ -74,7 +74,7 @@ class DocDataset(Dataset):
         # get tokenizer
         if self.params.bert_type=="bert-base-uncased":
             self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-        if self.params.bert_type=="bert-large-cased-whole-word-masking":
+        if self.params.bert_type=="bert-large-cased":
             self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
         # bert tokenizer parameters
         # MAX_SEQ_LEN = 128
