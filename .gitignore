@@ -3,6 +3,7 @@ __pycache__/
 /preprocessing/*.csv
 /model_files/bert-base-uncased/*[!*.md]
 /model_files/bert-large-cased-whole-word-masking/*[!*.md]
+/model_files/bert-large-cased/*[!*.md]
 /model_files/trained_models/*[!*.md]
 /model_files/rebel-large/*[!*.md]
 .vscode/
