@@ -36,9 +36,11 @@ class customBERT(nn.Module):
         if self.params.bert_type == "bert-base-uncased":
             pretrained_model = CONFIG.BERT_BASE_PATH
             size=768
+            num_heads=12
         elif self.params.bert_type == "bert-large-cased":
             pretrained_model = CONFIG.BERT_LARGE_PATH
             size=1024
+            num_heads=16
 
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
@@ -49,13 +51,13 @@ class customBERT(nn.Module):
             self.lstm = nn.LSTM(
                 input_size=size,
                 hidden_size=size,
-                num_layers=self.params.num_layers,
+                num_layers=1,
                 bidirectional=True,
             )
         # initialize multihead attention layer
         if self.params.multihead_attention:
             self.multihead_attention = nn.MultiheadAttention(
-                embed_dim=size, num_heads=self.params.num_heads
+                embed_dim=size, num_heads=num_heads
             )
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
