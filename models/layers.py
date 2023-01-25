@@ -24,7 +24,7 @@ class BERT(nn.Module):
 
 class customBERT(nn.Module):
     def __init__(self, config, params):
-        global size
+        global size, num_heads
         global pretrained_model
 
         super(customBERT, self).__init__()
@@ -37,7 +37,7 @@ class customBERT(nn.Module):
             pretrained_model = CONFIG.BERT_BASE_PATH
             size=768
             num_heads=12
-        elif self.params.bert_type == "bert-large-cased":
+        elif self.params.bert_type == "bert-large-uncased":
             pretrained_model = CONFIG.BERT_LARGE_PATH
             size=1024
             num_heads=16

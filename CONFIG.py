@@ -7,7 +7,7 @@ path = os.getcwd()
 DATA_PATH = os.path.join(path, "datasets/")
 DESTINATION_PATH = os.path.join(path, "model_files/trained_models")
 BERT_BASE_PATH = os.path.join(path, "model_files/bert-base-uncased")
-BERT_LARGE_PATH = os.path.join(path, "model_files/bert-large-cased")
+BERT_LARGE_PATH = os.path.join(path, "model_files/bert-large-uncased")
 PLOT_PATH = os.path.join(path, "figs")
 
 # label dict

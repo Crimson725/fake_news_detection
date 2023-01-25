@@ -28,7 +28,7 @@ class Trainer:
         # load the default config
         if self.params.bert_type== "bert-base-uncased":
             self.config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-        if self.params.bert_type=="bert-large-cased":
+        if self.params.bert_type=="bert-large-uncased":
             self.config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
             self.config.label2id = CONFIG.LABEL2ID
             self.config.id2label = CONFIG.ID2LABEL
