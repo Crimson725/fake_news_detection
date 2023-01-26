@@ -206,7 +206,7 @@ class Trainer:
         )
         print("Finished Training!")
 
-    def ddp_train(self, best_valid_loss=float("Inf")):
+    def DDP_train(self, best_valid_loss=float("Inf")):
 
         loader = DDP_loader_train(self.params)
         # get the dataloader

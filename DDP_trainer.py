@@ -4,7 +4,7 @@ import CONFIG
 from models.layers import customBERT
 from train import Trainer
 import os
-from utils.common_util import ddp_seed_init, get_train_parser, get_DDP_path
+from utils.common_util import ddp_seed_init, get_DDP_path, get_train_parser_DDP
 import torch.distributed as dist
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -40,10 +40,10 @@ def main(params):
     # DDP model
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
     trainer = Trainer(params, model, file_path=file_path, tf_path=tf_path, device=device)
-    trainer.ddp_train()
+    trainer.DDP_train()
 
 
 if __name__ == "__main__":
-    params = get_train_parser()
+    params = get_train_parser_DDP()
     ddp_seed_init(params.seed + LOCAL_RANK)
     main(params)
