@@ -76,16 +76,25 @@ def load_metrics(path):
 
 
 class DocDataset(Dataset):
-    def __init__(self, dataframe, params):
+    def __init__(self, dataframe, params, args=None):
         self.data = dataframe
         self.text = dataframe.text
         self.targets = dataframe.label
         self.params = params
-        self.max_len = self.params.max_len
+        if __name__ in ["DDP_trainer", "trainer"]:
+            self.max_len = self.params.max_len
+            # get tokenizer
+            if self.params.bert_type == "bert-base-uncased":
+                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
+            if self.params.bert_type == "bert-large-uncased":
+                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
+
+        self.args = args
+        self.max_len = self.args.max_len
         # get tokenizer
-        if self.params.bert_type == "bert-base-uncased":
+        if self.args.bert_type == "bert-base-uncased":
             self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-        if self.params.bert_type == "bert-large-uncased":
+        if self.args.bert_type == "bert-large-uncased":
             self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
 
     # bert tokenizer parameters
@@ -287,7 +296,7 @@ class loader_eval:
         eval_dataset = pd.read_csv(
             os.path.join(CONFIG.DATA_PATH, self.params.eval_dataset)
         )
-        eval_set = DocDataset(eval_dataset, self.params)
+        eval_set = DocDataset(eval_dataset, self.params,args=self.train_args)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
 
@@ -397,9 +406,6 @@ def get_eval_parser():
     )
     argparser.add_argument(
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
-    )
-    argparser.add_argument(
-        "--max_len", type=int, default=512, help="max length to padding"
     )
 
     args = argparser.parse_args()
