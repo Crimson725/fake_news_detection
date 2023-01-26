@@ -32,7 +32,7 @@ def main(params):
     torch.cuda.set_device(LOCAL_RANK)
     model = customBERT(config, params=params).to(LOCAL_RANK)
     # DDP
-    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, find_unused_parameters=True)
+    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
     trainer = Trainer(params, model,device=device)
     trainer.ddp_train()
 
