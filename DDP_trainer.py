@@ -16,9 +16,10 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 dist.init_process_group(backend="nccl")
 rank = dist.get_rank()
-# set device (using local rank)
-torch.cuda.set_device(CONFIG.LOCAL_RANK)
 LOCAL_RANK = int(os.environ["LOCAL_RANK"])
+# set device (using local rank)
+torch.cuda.set_device(LOCAL_RANK)
+
 
 def main(params):
     # init the model
