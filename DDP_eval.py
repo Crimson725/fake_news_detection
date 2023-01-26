@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report
 
 from models.layers import customBERT
 from utils.common_util import (
-    load_DDP_checkpoint,
+    load_checkpoint,
     loader_eval,
     get_eval_parser,
     DDP_seed_init,
@@ -34,9 +34,9 @@ class DDP_Evaluator:
         self.testing_loader = testing_loader
         self.device = device
         if params is None:
-            load_DDP_checkpoint(model_path, self.model)
+            load_checkpoint(model_path, self.model)
         else:
-            load_DDP_checkpoint(params.model_path, self.model)
+            load_checkpoint(params.model_path, self.model)
 
     # for the original BERT
     # def evaluate(self, model, test_loader):
