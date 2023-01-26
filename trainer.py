@@ -4,10 +4,8 @@ import CONFIG
 from models.layers import customBERT
 from train import Trainer
 import os
-from utils.common_util import seed_init
-from utils.common_util import get_train_parser
+from utils.common_util import seed_init, get_train_parser, get_path
 import platform
-
 
 # for reproducibility
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
@@ -24,7 +22,9 @@ def main(params):
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
     model = customBERT(config, params=params).to(device)
 
-    trainer = Trainer(params, model, device)
+    modelname = params.model_name + params.bert_type
+    file_path, tf_path = get_path(modelname)
+    trainer = Trainer(params, model,  file_path=file_path, tf_path=tf_path,device=device)
     trainer.train()
 
 

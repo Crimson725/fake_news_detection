@@ -11,7 +11,6 @@ from utils.common_util import (
 )
 from utils.logger import Logger
 import time
-import datetime
 import CONFIG
 import os
 from eval import Evaluator
@@ -19,7 +18,7 @@ from tensorboardX import SummaryWriter
 
 
 class Trainer:
-    def __init__(self, params, model, device=None):
+    def __init__(self, params, model, file_path=None, tf_path=None, device=None):
 
         self.params = params
         self.device = device
@@ -39,25 +38,13 @@ class Trainer:
 
         self.early_stop_patience = self.params.early_stop_patience
 
-    def get_path(self, name):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
-        tf_path = os.path.join(file_path, "tf_logs")
-        if not os.path.exists(tf_path):
-            os.makedirs(tf_path)
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        return file_path, tf_path
+        self.file_path = file_path
+        self.tf_path = tf_path
 
-    def get_DDP_path(self, name):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
-        tf_path = os.path.join(file_path, "tf_logs")
-        if not os.path.exists(tf_path):
-            os.makedirs(tf_path)
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        return file_path, tf_path
+        self.best_metrics_path = file_path + "/" + "best_metrics.pt"
+        self.metrics_path = file_path + "/" + "metrics.pt"
+        self.train_args_path = file_path + "/" + "train_args.pkl"
+        self.model_path = file_path + "/" + "model.pt"
 
     def train(self, best_valid_loss=float("Inf")):
 
@@ -67,15 +54,9 @@ class Trainer:
 
         # get the model
         model = self.model
-        model_name = self.model_name
-        # make the path to save the log and models
-        file_path, tf_path = self.get_path(model_name)
-        model_path = file_path + "/" + "model.pt"
-        best_metrics_path = file_path + "/" + "best_metrics.pt"
-        metrics_path = file_path + "/" + "metrics.pt"
-        train_args_path = file_path + "/" + "train_args.pkl"
+
         # save the args
-        with open(train_args_path, "wb") as f:
+        with open(self.train_args_path, "wb") as f:
             pickle.dump(self.params, f)
         # train/valid loss
         running_loss = 0
@@ -90,8 +71,8 @@ class Trainer:
         # eval setting
         eval_every = len(training_loader) // self.params.eval_every
         # get the logger
-        logger = Logger("Training", file_path)
-        tflogger = SummaryWriter(tf_path)
+        logger = Logger("Training", self.file_path)
+        tflogger = SummaryWriter(self.tf_path)
 
         # training
         model.train()
@@ -183,14 +164,13 @@ class Trainer:
                         if best_valid_loss > average_valid_loss:
                             best_valid_loss = average_valid_loss
                             early_stop_counter = 0
-                            save_checkpoint(model_path, model, best_valid_loss)
+                            save_checkpoint(self.model_path, model, best_valid_loss)
                             save_metrics(
-                                best_metrics_path,
+                                self.best_metrics_path,
                                 train_loss_list,
                                 valid_loss_list,
                                 global_step_list,
                             )
-                            model.config.to_json_file(file_path + "/" + "config.json")
                         else:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
@@ -207,13 +187,13 @@ class Trainer:
                 testing_loader,
                 device=self.device,
                 params=None,
-                model_path=model_path,
+                model_path=self.model_path,
             )
             logger.log("--------------------Evaluation--------------------")
             evaluator.validation(logger)
 
         save_metrics(
-            metrics_path,
+            self.metrics_path,
             train_loss_list,
             valid_loss_list,
             global_step_list,
@@ -234,20 +214,14 @@ class Trainer:
 
         # get the model
         model = self.model
-        model_name = self.model_name
-        # make the path to save the log and models
+
         if dist.get_rank() == 0:
-            file_path, tf_path = self.get_DDP_path(model_name)
-            model_path = file_path + "/" + "model.pt"
-            best_metrics_path = file_path + "/" + "best_metrics.pt"
-            metrics_path = file_path + "/" + "metrics.pt"
-            train_args_path = file_path + "/" + "train_args.pkl"
             # save the args
-            with open(train_args_path, "wb") as f:
+            with open(self.train_args_path, "wb") as f:
                 pickle.dump(self.params, f)
             # get the logger
-            logger = Logger("Training", file_path)
-            tflogger = SummaryWriter(tf_path)
+            logger = Logger("Training", self.file_path)
+            tflogger = SummaryWriter(self.tf_path)
         # train/valid loss
         running_loss = 0
         valid_running_loss = 0
@@ -270,10 +244,11 @@ class Trainer:
             logger.log("Test size: {}".format(len(testing_loader.dataset)))
 
             logger.log("--------------------Args--------------------")
-        # print and log args
-        print("--------------------Args--------------------")
+
         if self.params.log_args:
             if dist.get_rank() == 0:
+                # print and log args
+                print("--------------------Args--------------------")
                 for k, v in vars(self.params).items():
                     logger.log(f"{k} = {v}")
                     print(f"{k} = {v}")
@@ -360,14 +335,14 @@ class Trainer:
                             best_valid_loss = average_valid_loss
                             early_stop_counter = 0
                             if dist.get_rank() == 0:
-                                save_ddp_checkpoint(model_path, model, best_valid_loss)
+                                save_ddp_checkpoint(self.model_path, model, best_valid_loss)
                                 save_metrics(
-                                    best_metrics_path,
+                                    self.best_metrics_path,
                                     train_loss_list,
                                     valid_loss_list,
                                     global_step_list,
                                 )
-                                model.config.to_json_file(file_path + "/" + "config.json")
+                                model.config.to_json_file(self.file_path + "/" + "config.json")
                         else:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
@@ -385,14 +360,14 @@ class Trainer:
                     testing_loader,
                     device=self.device,
                     params=None,
-                    model_path=model_path,
+                    model_path=self.model_path,
                 )
                 if dist.get_rank() == 0:
                     logger.log("--------------------Evaluation--------------------")
                 evaluator.validation(logger)
 
             save_metrics(
-                metrics_path,
+                self.metrics_path,
                 train_loss_list,
                 valid_loss_list,
                 global_step_list,

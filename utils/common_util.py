@@ -7,6 +7,8 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.backends import cudnn
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
+import datetime
+
 import CONFIG
 
 
@@ -182,6 +184,28 @@ class loader_train:
             training_loader = DataLoader(train_set, **train_loader_params)
             testing_loader = DataLoader(test_set, **test_loader_params)
         return training_loader, testing_loader
+
+
+def get_path(name):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
+    tf_path = os.path.join(file_path, "tf_logs")
+    if not os.path.exists(tf_path):
+        os.makedirs(tf_path)
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    return file_path, tf_path
+
+
+def get_DDP_path(name):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
+    tf_path = os.path.join(file_path, "tf_logs")
+    if not os.path.exists(tf_path):
+        os.makedirs(tf_path)
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    return file_path, tf_path
 
 
 class DDP_loader_train:

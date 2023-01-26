@@ -4,8 +4,7 @@ import CONFIG
 from models.layers import customBERT
 from train import Trainer
 import os
-from utils.common_util import ddp_seed_init
-from utils.common_util import get_train_parser
+from utils.common_util import ddp_seed_init, get_train_parser, get_DDP_path
 import torch.distributed as dist
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -21,6 +20,7 @@ LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 torch.cuda.set_device(LOCAL_RANK)
 device = torch.device("cuda", LOCAL_RANK)
 
+
 def main(params):
     # init the model
     if params.bert_type == "bert-base-uncased":
@@ -31,13 +31,19 @@ def main(params):
         config.id2label = CONFIG.ID2LABEL
     torch.cuda.set_device(LOCAL_RANK)
     model = customBERT(config, params=params).to(LOCAL_RANK)
-    # DDP
+
+    modelname = params.model_name + params.bert_type
+    file_path, tf_path = get_DDP_path(modelname)
+    # save config
+    model.config.to_json_file(file_path + "/" + "config.json")
+
+    # DDP model
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
-    trainer = Trainer(params, model,device=device)
+    trainer = Trainer(params, model, file_path=file_path, tf_path=tf_path, device=device)
     trainer.ddp_train()
 
 
 if __name__ == "__main__":
     params = get_train_parser()
-    ddp_seed_init(params.seed+LOCAL_RANK)
+    ddp_seed_init(params.seed + LOCAL_RANK)
     main(params)
