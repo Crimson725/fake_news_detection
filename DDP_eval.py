@@ -22,7 +22,6 @@ from utils.common_util import (
 # for reproducibility
 # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
-dist.init_process_group(backend="nccl")
 rank = dist.get_rank()
 LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 
@@ -112,7 +111,7 @@ def eval(params):
     model = customBERT(config, train_args).to(device)
     loader = loader_eval(params, train_args)
     eval_loader = loader.get_loader()
-    evaluator = Evaluator(
+    evaluator = DDP_Evaluator(
         model, testing_loader=eval_loader, device=device, params=params
     )
     evaluator.validation()
