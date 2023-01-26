@@ -5,6 +5,7 @@ import platform
 import numpy as np
 from sklearn import metrics
 from transformers import BertConfig
+import torch.distributed as dist
 
 import CONFIG
 import torch
@@ -12,28 +13,32 @@ from sklearn.metrics import classification_report
 
 from models.layers import customBERT
 from utils.common_util import (
-    load_checkpoint,
+    load_DDP_checkpoint,
     loader_eval,
     get_eval_parser,
-    seed_init,
+    DDP_seed_init,
 )
 
-# set the environment variable
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+# for reproducibility
+# os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+
+dist.init_process_group(backend="nccl")
+rank = dist.get_rank()
+LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 
 
 # TODO: REWRITE THE VALIDATION FUNCTION
-class Evaluator:
+class DDP_Evaluator:
     def __init__(
-        self, model, testing_loader=None, device=None, params=None, model_path=None
+            self, model, testing_loader=None, device=None, params=None, model_path=None
     ):
         self.model = model
         self.testing_loader = testing_loader
         self.device = device
         if params is None:
-            load_checkpoint(model_path, self.model)
+            load_DDP_checkpoint(model_path, self.model)
         else:
-            load_checkpoint(params.model_path, self.model)
+            load_DDP_checkpoint(params.model_path, self.model)
 
     # for the original BERT
     # def evaluate(self, model, test_loader):
@@ -116,5 +121,5 @@ def eval(params):
 if __name__ == "__main__":
     params = get_eval_parser()
     if platform.system() == "Linux":
-        seed_init(params.seed)
+        DDP_seed_init(params.seed + LOCAL_RANK)
     eval(params)

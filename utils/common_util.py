@@ -21,7 +21,7 @@ def seed_init(seed):
         cudnn.deterministic = True
 
 
-def ddp_seed_init(seed, cuda_deterministic=True):
+def DDP_seed_init(seed, cuda_deterministic=True):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -41,7 +41,7 @@ def save_checkpoint(path, model, valid_loss):
     print("model saved to ==>{}".format(path))
 
 
-def save_ddp_checkpoint(path, model, valid_loss):
+def save_DDP_checkpoint(path, model, valid_loss):
     if path == None:
         return
     state_dict = {"model_state_dict": model.module.state_dict(), "valid_loss": valid_loss}
@@ -54,6 +54,18 @@ def load_checkpoint(path, model):
         return
     state_dict = torch.load(path, map_location=torch.device("cpu"))
     print("loading model from <=={}".format(path))
+    model.load_state_dict(state_dict["model_state_dict"])
+    return state_dict["valid_loss"]
+
+
+def load_DDP_checkpoint(path, model):
+    if path == None:
+        return
+    state_dict = torch.load(path, map_location=torch.device("cpu"))
+    print("loading model from <=={}".format(path))
+    # replace the 'module'
+    state_dict = {k.replace('module.', ''): v for k, v in
+                  state_dict.items()}
     model.load_state_dict(state_dict["model_state_dict"])
     return state_dict["valid_loss"]
 

@@ -7,13 +7,15 @@ import torch.distributed as dist
 from utils.common_util import (
     save_checkpoint,
     save_metrics,
-    loader_train, DDP_loader_train, save_ddp_checkpoint,
+    loader_train, DDP_loader_train, save_DDP_checkpoint,
 )
 from utils.logger import Logger
 import time
 import CONFIG
 import os
 from eval import Evaluator
+from DDP_eval import DDP_Evaluator
+
 from tensorboardX import SummaryWriter
 
 
@@ -337,7 +339,7 @@ class Trainer:
                             best_valid_loss = average_valid_loss
                             early_stop_counter = 0
                             if dist.get_rank() == 0:
-                                save_ddp_checkpoint(self.model_path, model, best_valid_loss)
+                                save_DDP_checkpoint(self.model_path, model, best_valid_loss)
                                 save_metrics(
                                     self.best_metrics_path,
                                     train_loss_list,
@@ -356,7 +358,7 @@ class Trainer:
         if dist.get_rank() == 0:
             if self.params.valid_enable:
                 eval_model = self.model
-                evaluator = Evaluator(
+                evaluator = DDP_Evaluator(
                     eval_model,
                     testing_loader,
                     device=self.device,
