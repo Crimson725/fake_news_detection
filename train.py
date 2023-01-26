@@ -361,13 +361,13 @@ class Trainer:
                             early_stop_counter = 0
                             if dist.get_rank() == 0:
                                 save_ddp_checkpoint(model_path, model, best_valid_loss)
-                            save_metrics(
-                                best_metrics_path,
-                                train_loss_list,
-                                valid_loss_list,
-                                global_step_list,
-                            )
-                            model.config.to_json_file(file_path + "/" + "config.json")
+                                save_metrics(
+                                    best_metrics_path,
+                                    train_loss_list,
+                                    valid_loss_list,
+                                    global_step_list,
+                                )
+                                model.config.to_json_file(file_path + "/" + "config.json")
                         else:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
@@ -377,28 +377,30 @@ class Trainer:
                                     f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
                                 )
                             break
+        if dist.get_rank() == 0:
+            if self.params.valid_enable:
+                eval_model = self.model
+                evaluator = Evaluator(
+                    eval_model,
+                    testing_loader,
+                    device=self.device,
+                    params=None,
+                    model_path=model_path,
+                )
+                if dist.get_rank() == 0:
+                    logger.log("--------------------Evaluation--------------------")
+                evaluator.validation(logger)
 
-        if self.params.valid_enable:
-            eval_model = self.model
-            evaluator = Evaluator(
-                eval_model,
-                testing_loader,
-                device=self.device,
-                params=None,
-                model_path=model_path,
+            save_metrics(
+                metrics_path,
+                train_loss_list,
+                valid_loss_list,
+                global_step_list,
             )
-            if dist.get_rank() == 0:
-                logger.log("--------------------Evaluation--------------------")
-            evaluator.validation(logger)
 
-        save_metrics(
-            metrics_path,
-            train_loss_list,
-            valid_loss_list,
-            global_step_list,
-        )
         end_time = time.time()
         elapsed_time = end_time - start_time
+
         if dist.get_rank() == 0:
             logger.log(
                 f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
