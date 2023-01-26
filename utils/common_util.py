@@ -8,6 +8,7 @@ from torch.backends import cudnn
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
 import datetime
+from collections import OrderedDict
 
 import CONFIG
 
@@ -63,10 +64,12 @@ def load_DDP_checkpoint(path, model):
         return
     state_dict = torch.load(path, map_location=torch.device("cpu"))
     print("loading model from <=={}".format(path))
-    # replace the 'module'
-    state_dict = {k.replace('module.', ''): v for k, v in
-                  state_dict.items()}
-    model.load_state_dict(state_dict["model_state_dict"])
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k[7:]  # remove 'module.' of DataParallel/DistributedDataParallel
+        new_state_dict[name] = v
+
+    model.load_state_dict(new_state_dict)
     return state_dict["valid_loss"]
 
 
