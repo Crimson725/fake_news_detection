@@ -399,7 +399,7 @@ def get_eval_parser():
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
     )
     argparser.add_argument(
-        "--max_len", tpye=int, default=512, help="max length to padding"
+        "--max_len", type=int, default=512, help="max length to padding"
     )
 
     args = argparser.parse_args()
