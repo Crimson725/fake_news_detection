@@ -38,5 +38,5 @@ def main(params):
 
 if __name__ == "__main__":
     params = get_train_parser()
-    ddp_seed_init(params.seed)
+    ddp_seed_init(params.seed+CONFIG.LOCAL_RANK)
     main(params)

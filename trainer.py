@@ -31,5 +31,5 @@ def main(params):
 if __name__ == "__main__":
     params = get_train_parser()
     if platform.system() == "Linux":
-        seed_init(params.seed+CONFIG.LOCAL_RANK)
+        seed_init(params.seed)
     main(params)
