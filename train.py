@@ -244,6 +244,9 @@ class Trainer:
             # save the args
             with open(train_args_path, "wb") as f:
                 pickle.dump(self.params, f)
+            # get the logger
+            logger = Logger("Training", file_path)
+            tflogger = SummaryWriter(tf_path)
         # train/valid loss
         running_loss = 0
         valid_running_loss = 0
@@ -256,18 +259,17 @@ class Trainer:
 
         # eval setting
         eval_every = len(training_loader) // self.params.eval_every
-        # get the logger
-        logger = Logger("Training", file_path)
-        tflogger = SummaryWriter(tf_path)
+
 
         # training
         model.train()
         start_time = time.time()
-        logger.log("Start training...")
-        logger.log("Training size: {}".format(len(training_loader.dataset)))
-        logger.log("Test size: {}".format(len(testing_loader.dataset)))
+        if dist.get_rank() == 0:
+            logger.log("Start training...")
+            logger.log("Training size: {}".format(len(training_loader.dataset)))
+            logger.log("Test size: {}".format(len(testing_loader.dataset)))
 
-        logger.log("--------------------Args--------------------")
+            logger.log("--------------------Args--------------------")
         # print and log args
         print("--------------------Args--------------------")
         if self.params.log_args:
@@ -280,7 +282,8 @@ class Trainer:
         optimizer = self.optimizer
         verbose = self.params.verbose
         print_logs = self.params.print_logs
-        logger.log("--------------------Loss--------------------")
+        if dist.get_rank()==0:
+            logger.log("--------------------Loss--------------------")
         for epoch in range(epochs):
             # set epoch for shuffle
             training_sampler.set_epoch(epoch)
@@ -322,17 +325,18 @@ class Trainer:
                         train_loss_list.append(average_train_loss)
                         valid_loss_list.append(average_valid_loss)
                         global_step_list.append(global_step)
-                        if tflogger is not None:
-                            tflogger.add_scalar(
-                                "Training loss", average_train_loss, global_step
-                            )
-                            tflogger.add_scalar(
-                                "Validation loss", average_valid_loss, global_step
-                            )
-                            for name, param in model.named_parameters():
-                                tflogger.add_histogram(
-                                    name, param.clone().cpu().data.numpy(), global_step
+                        if dist.get_rank()==0:
+                            if tflogger is not None:
+                                tflogger.add_scalar(
+                                    "Training loss", average_train_loss, global_step
                                 )
+                                tflogger.add_scalar(
+                                    "Validation loss", average_valid_loss, global_step
+                                )
+                                for name, param in model.named_parameters():
+                                    tflogger.add_histogram(
+                                        name, param.clone().cpu().data.numpy(), global_step
+                                    )
 
                         running_loss = 0
                         valid_running_loss = 0
@@ -346,10 +350,11 @@ class Trainer:
                             average_valid_loss,
                         )
                         if verbose:
-                            if print_logs:
-                                # print the training msg
-                                print(msg)
-                            logger.log(msg)
+                            if dist.get_rank()==0:
+                                if print_logs:
+                                    # print the training msg
+                                    print(msg)
+                                logger.log(msg)
                         if best_valid_loss > average_valid_loss:
                             best_valid_loss = average_valid_loss
                             early_stop_counter = 0
@@ -366,9 +371,10 @@ class Trainer:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
                             print("Early stopping")
-                            logger.log(
-                                f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
-                            )
+                            if dist.get_rank()==0:
+                                logger.log(
+                                    f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
+                                )
                             break
 
         if self.params.valid_enable:
@@ -380,7 +386,8 @@ class Trainer:
                 params=None,
                 model_path=model_path,
             )
-            logger.log("--------------------Evaluation--------------------")
+            if dist.get_rank()==0:
+                logger.log("--------------------Evaluation--------------------")
             evaluator.validation(logger)
 
         save_metrics(
@@ -391,8 +398,8 @@ class Trainer:
         )
         end_time = time.time()
         elapsed_time = end_time - start_time
-
-        logger.log(
-            f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
-        )
+        if dist.get_rank()==0:
+            logger.log(
+                f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
+            )
         print("Finished Training!")
