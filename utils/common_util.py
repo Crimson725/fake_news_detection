@@ -42,9 +42,17 @@ def save_checkpoint(path, model, valid_loss):
     print("model saved to ==>{}".format(path))
 
 
-def load_checkpoint(path, model):
+def load_checkpoint(path, model,DDP=False):
     if path == None:
         return
+    if DDP:
+        state_dict = torch.load(path, map_location=torch.device("cpu"))
+        new_state_dict = OrderedDict()
+        for k, v in state_dict["model_state_dict"].items():
+            name = k[7:]
+            new_state_dict[name] = v
+        model.load_state_dict(new_state_dict)
+
     state_dict = torch.load(path, map_location=torch.device("cpu"))
     print("loading model from <=={}".format(path))
     model.load_state_dict(state_dict["model_state_dict"])

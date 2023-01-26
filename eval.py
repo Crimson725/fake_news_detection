@@ -32,6 +32,8 @@ class Evaluator:
         self.device = device
         if params is None:
             load_checkpoint(model_path, self.model)
+        elif params.mode=="DDP":
+            load_checkpoint(params.model_path, self.model)
         else:
             load_checkpoint(params.model_path, self.model)
 
