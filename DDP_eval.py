@@ -22,7 +22,6 @@ from utils.common_util import (
 # for reproducibility
 # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
-rank = dist.get_rank()
 LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 
 
