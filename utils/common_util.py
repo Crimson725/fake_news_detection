@@ -38,12 +38,14 @@ def save_checkpoint(path, model, valid_loss):
     torch.save(state_dict, path)
     print("model saved to ==>{}".format(path))
 
+
 def save_ddp_checkpoint(path, model, valid_loss):
     if path == None:
         return
     state_dict = {"model_state_dict": model.module.state_dict(), "valid_loss": valid_loss}
     torch.save(state_dict, path)
     print("model saved to ==>{}".format(path))
+
 
 def load_checkpoint(path, model):
     if path == None:
@@ -197,11 +199,13 @@ class DDP_loader_train:
 
         train_loader_params = {
             "batch_size": self.params.train_batch // 2,
+            "shuffle": False,
             "worker_init_fn": seed_worker,
             "generator": g,
         }
         test_loader_params = {
             "batch_size": self.params.test_batch // 2,
+            "shuffle": False,
             "worker_init_fn": seed_worker,
             "generator": g,
         }
@@ -239,10 +243,9 @@ class DDP_loader_train:
             # get the sampler
             train_sampler = DistributedSampler(train_set)
             test_sampler = DistributedSampler(test_set)
-            training_loader = DataLoader(train_set, **train_loader_params,sampler=train_sampler)
-            testing_loader = DataLoader(test_set, **test_loader_params,sampler=test_sampler)
-        return training_loader, testing_loader,train_sampler,test_sampler
-
+            training_loader = DataLoader(train_set, **train_loader_params, sampler=train_sampler)
+            testing_loader = DataLoader(test_set, **test_loader_params, sampler=test_sampler)
+        return training_loader, testing_loader, train_sampler, test_sampler
 
 
 class loader_eval:
