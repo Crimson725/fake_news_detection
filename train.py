@@ -171,6 +171,8 @@ class Trainer:
                                 valid_loss_list,
                                 global_step_list,
                             )
+                            model.config.to_json_file(self.file_path + "/" + "config.json")
+
                         else:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
@@ -342,7 +344,6 @@ class Trainer:
                                     valid_loss_list,
                                     global_step_list,
                                 )
-                                model.config.to_json_file(self.file_path + "/" + "config.json")
                         else:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
