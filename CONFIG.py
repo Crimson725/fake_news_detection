@@ -17,4 +17,4 @@ ID2LABEL = {k: v for v, k in LABEL2ID.items()}
 
 DEVICE = "cuda:7"
 
-LOCAL_RANK = int(os.environ["LOCAL_RANK"])
+# LOCAL_RANK = int(os.environ["LOCAL_RANK"])
