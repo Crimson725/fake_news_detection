@@ -43,8 +43,10 @@ class Trainer:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
         tf_path = os.path.join(file_path, "tf_logs")
-        os.mkdir(file_path)
-        os.mkdir(tf_path)
+        if not os.path.exists(tf_path):
+            os.mkdir(tf_path)
+        if not os.path.exists(file_path):
+            os.mkdir(file_path)
         return file_path, tf_path
 
     def train(self, best_valid_loss=float("Inf")):
