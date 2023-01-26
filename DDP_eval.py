@@ -10,6 +10,7 @@ import torch.distributed as dist
 import CONFIG
 import torch
 from sklearn.metrics import classification_report
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 from models.layers import customBERT
 from utils.common_util import (
@@ -117,7 +118,29 @@ def eval(params):
 
 
 if __name__ == "__main__":
+    dist.init_process_group(backend="nccl")
+    rank = dist.get_rank()
+    LOCAL_RANK = int(os.environ["LOCAL_RANK"])
+    # set device (using local rank)
+    torch.cuda.set_device(LOCAL_RANK)
+    device = torch.device("cuda", LOCAL_RANK)
+
     params = get_eval_parser()
     if platform.system() == "Linux":
         DDP_seed_init(params.seed + LOCAL_RANK)
-    eval(params)
+
+
+    train_args_path = os.path.join(os.path.dirname(params.model_path), "train_args.pkl")
+    with open(train_args_path, "rb") as f:
+        train_args = pickle.load(f)
+    config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
+    device = torch.device(torch.device("cuda:{}".format(params.cuda)))
+    model = customBERT(config, train_args).to(device)
+    model=DDP(model,device_ids=[LOCAL_RANK],output_device=LOCAL_RANK)
+    loader = loader_eval(params, train_args)
+    eval_loader = loader.get_loader()
+    evaluator = DDP_Evaluator(
+        model, testing_loader=eval_loader, device=device, params=params
+    )
+
+    evaluator.validation()
