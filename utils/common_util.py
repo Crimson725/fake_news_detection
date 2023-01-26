@@ -415,6 +415,9 @@ def get_eval_parser():
     argparser.add_argument(
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
     )
+    argparser.add_argument(
+        "--DDP",type=bool, default=False, help="enable DDP"
+    )
 
     args = argparser.parse_args()
     return args

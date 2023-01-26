@@ -25,17 +25,15 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 # TODO: REWRITE THE VALIDATION FUNCTION
 class Evaluator:
     def __init__(
-        self, model, testing_loader=None, device=None, params=None, model_path=None
+            self, model, testing_loader=None, device=None, params=None, model_path=None
     ):
         self.model = model
         self.testing_loader = testing_loader
         self.device = device
         if params is None:
             load_checkpoint(model_path, self.model)
-        elif params.mode=="DDP":
-            load_checkpoint(params.model_path, self.model)
         else:
-            load_checkpoint(params.model_path, self.model)
+            load_checkpoint(params.model_path, self.model, params.DDP)
 
     # for the original BERT
     # def evaluate(self, model, test_loader):
