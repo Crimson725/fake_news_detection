@@ -129,18 +129,18 @@ if __name__ == "__main__":
     if platform.system() == "Linux":
         DDP_seed_init(params.seed + LOCAL_RANK)
 
-
     train_args_path = os.path.join(os.path.dirname(params.model_path), "train_args.pkl")
     with open(train_args_path, "rb") as f:
         train_args = pickle.load(f)
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
+
     model = customBERT(config, train_args).to(device)
-    model=DDP(model,device_ids=[LOCAL_RANK],output_device=LOCAL_RANK)
+    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
     loader = loader_eval(params, train_args)
     eval_loader = loader.get_loader()
     evaluator = DDP_Evaluator(
         model, testing_loader=eval_loader, device=device, params=params
     )
-
-    evaluator.validation()
+    if dist.get_rank() == 0:
+        evaluator.validation()
