@@ -41,12 +41,21 @@ class Trainer:
 
     def get_path(self, name):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
+        tf_path = os.path.join(file_path, "tf_logs")
+        if not os.path.exists(tf_path):
+            os.makedirs(tf_path)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        return file_path, tf_path
+    def get_DDP_path(self, name):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
         tf_path = os.path.join(file_path, "tf_logs")
         if not os.path.exists(tf_path):
-            os.mkdir(tf_path)
+            os.makedirs(tf_path)
         if not os.path.exists(file_path):
-            os.mkdir(file_path)
+            os.makedirs(file_path)
         return file_path, tf_path
 
     def train(self, best_valid_loss=float("Inf")):
@@ -227,7 +236,7 @@ class Trainer:
         model_name = self.model_name
         # make the path to save the log and models
         if dist.get_rank() == 0:
-            file_path, tf_path = self.get_path(model_name)
+            file_path, tf_path = self.get_DDP_path(model_name)
             model_path = file_path + "/" + "model.pt"
             best_metrics_path = file_path + "/" + "best_metrics.pt"
             metrics_path = file_path + "/" + "metrics.pt"
