@@ -41,7 +41,7 @@ class Trainer:
 
     def get_path(self, name):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        file_path = os.path.join(CONFIG.DESTINATION_PATH, timestamp + "_" + name)
+        file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
         tf_path = os.path.join(file_path, "tf_logs")
         if not os.path.exists(tf_path):
             os.mkdir(tf_path)
