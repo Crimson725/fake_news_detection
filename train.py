@@ -48,6 +48,7 @@ class Trainer:
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         return file_path, tf_path
+
     def get_DDP_path(self, name):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
@@ -260,7 +261,6 @@ class Trainer:
         # eval setting
         eval_every = len(training_loader) // self.params.eval_every
 
-
         # training
         model.train()
         start_time = time.time()
@@ -273,16 +273,17 @@ class Trainer:
         # print and log args
         print("--------------------Args--------------------")
         if self.params.log_args:
-            for k, v in vars(self.params).items():
-                logger.log(f"{k} = {v}")
-                print(f"{k} = {v}")
+            if dist.get_rank() == 0:
+                for k, v in vars(self.params).items():
+                    logger.log(f"{k} = {v}")
+                    print(f"{k} = {v}")
         #  training args
         epochs = self.epochs
         loss_fn = self.loss_fn
         optimizer = self.optimizer
         verbose = self.params.verbose
         print_logs = self.params.print_logs
-        if dist.get_rank()==0:
+        if dist.get_rank() == 0:
             logger.log("--------------------Loss--------------------")
         for epoch in range(epochs):
             # set epoch for shuffle
@@ -325,7 +326,7 @@ class Trainer:
                         train_loss_list.append(average_train_loss)
                         valid_loss_list.append(average_valid_loss)
                         global_step_list.append(global_step)
-                        if dist.get_rank()==0:
+                        if dist.get_rank() == 0:
                             if tflogger is not None:
                                 tflogger.add_scalar(
                                     "Training loss", average_train_loss, global_step
@@ -350,7 +351,7 @@ class Trainer:
                             average_valid_loss,
                         )
                         if verbose:
-                            if dist.get_rank()==0:
+                            if dist.get_rank() == 0:
                                 if print_logs:
                                     # print the training msg
                                     print(msg)
@@ -371,7 +372,7 @@ class Trainer:
                             early_stop_counter += 1
                         if early_stop_counter >= self.early_stop_patience:
                             print("Early stopping")
-                            if dist.get_rank()==0:
+                            if dist.get_rank() == 0:
                                 logger.log(
                                     f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
                                 )
@@ -386,7 +387,7 @@ class Trainer:
                 params=None,
                 model_path=model_path,
             )
-            if dist.get_rank()==0:
+            if dist.get_rank() == 0:
                 logger.log("--------------------Evaluation--------------------")
             evaluator.validation(logger)
 
@@ -398,7 +399,7 @@ class Trainer:
         )
         end_time = time.time()
         elapsed_time = end_time - start_time
-        if dist.get_rank()==0:
+        if dist.get_rank() == 0:
             logger.log(
                 f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
             )
