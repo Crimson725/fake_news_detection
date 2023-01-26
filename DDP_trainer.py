@@ -19,7 +19,7 @@ rank = dist.get_rank()
 LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 # set device (using local rank)
 torch.cuda.set_device(LOCAL_RANK)
-
+device = torch.device("cuda", LOCAL_RANK)
 
 def main(params):
     # init the model
@@ -33,7 +33,7 @@ def main(params):
     model = customBERT(config, params=params).to(LOCAL_RANK)
     # DDP
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, find_unused_parameters=True)
-    trainer = Trainer(params, model)
+    trainer = Trainer(params, model,device=device)
     trainer.ddp_train()
 
 
