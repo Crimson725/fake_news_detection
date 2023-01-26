@@ -42,8 +42,6 @@ def save_checkpoint(path, model, valid_loss):
     print("model saved to ==>{}".format(path))
 
 
-
-
 def load_checkpoint(path, model):
     if path == None:
         return
@@ -51,8 +49,6 @@ def load_checkpoint(path, model):
     print("loading model from <=={}".format(path))
     model.load_state_dict(state_dict["model_state_dict"])
     return state_dict["valid_loss"]
-
-
 
 
 def save_metrics(path, train_loss_list, valid_loss_list, global_steps_list):
@@ -401,6 +397,9 @@ def get_eval_parser():
     )
     argparser.add_argument(
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
+    )
+    argparser.add_argument(
+        "--max_len", tpye=int, default=512, help="max length to padding"
     )
 
     args = argparser.parse_args()
