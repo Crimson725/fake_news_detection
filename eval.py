@@ -33,7 +33,7 @@ class Evaluator:
         if params is None:
             load_checkpoint(model_path, self.model)
         else:
-            load_checkpoint(params.model_path, self.model, params.DDP)
+            load_checkpoint(params.model_path, self.model, params.mode)
 
     # for the original BERT
     # def evaluate(self, model, test_loader):

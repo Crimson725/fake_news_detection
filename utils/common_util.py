@@ -42,10 +42,10 @@ def save_checkpoint(path, model, valid_loss):
     print("model saved to ==>{}".format(path))
 
 
-def load_checkpoint(path, model,DDP=False):
+def load_checkpoint(path, model,mode=None):
     if path == None:
         return
-    if DDP:
+    if mode=="DDP":
         state_dict = torch.load(path, map_location=torch.device("cpu"))
         new_state_dict = OrderedDict()
         for k, v in state_dict["model_state_dict"].items():
@@ -416,7 +416,7 @@ def get_eval_parser():
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
     )
     argparser.add_argument(
-        "--DDP",type=bool, default=False, help="enable DDP"
+        "--mode",type=str, default=None, help="eval mode"
     )
 
     args = argparser.parse_args()
