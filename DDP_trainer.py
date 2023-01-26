@@ -18,7 +18,7 @@ dist.init_process_group(backend="nccl")
 rank = dist.get_rank()
 # set device (using local rank)
 torch.cuda.set_device(CONFIG.LOCAL_RANK)
-
+LOCAL_RANK = int(os.environ["LOCAL_RANK"])
 
 def main(params):
     # init the model
@@ -28,15 +28,15 @@ def main(params):
         config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
         config.label2id = CONFIG.LABEL2ID
         config.id2label = CONFIG.ID2LABEL
-    torch.cuda.set_device(CONFIG.LOCAL_RANK)
-    model = customBERT(config, params=params).to(CONFIG.LOCAL_RANK)
+    torch.cuda.set_device(LOCAL_RANK)
+    model = customBERT(config, params=params).to(LOCAL_RANK)
     # DDP
-    model = DDP(model, device_ids=[CONFIG.LOCAL_RANK], output_device=CONFIG.LOCAL_RANK, find_unused_parameters=True)
+    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, find_unused_parameters=True)
     trainer = Trainer(params, model)
     trainer.ddp_train()
 
 
 if __name__ == "__main__":
     params = get_train_parser()
-    ddp_seed_init(params.seed+CONFIG.LOCAL_RANK)
+    ddp_seed_init(params.seed+LOCAL_RANK)
     main(params)
