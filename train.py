@@ -226,14 +226,15 @@ class Trainer:
         model = self.model
         model_name = self.model_name
         # make the path to save the log and models
-        file_path, tf_path = self.get_path(model_name)
-        model_path = file_path + "/" + "model.pt"
-        best_metrics_path = file_path + "/" + "best_metrics.pt"
-        metrics_path = file_path + "/" + "metrics.pt"
-        train_args_path = file_path + "/" + "train_args.pkl"
-        # save the args
-        with open(train_args_path, "wb") as f:
-            pickle.dump(self.params, f)
+        if dist.get_rank() == 0:
+            file_path, tf_path = self.get_path(model_name)
+            model_path = file_path + "/" + "model.pt"
+            best_metrics_path = file_path + "/" + "best_metrics.pt"
+            metrics_path = file_path + "/" + "metrics.pt"
+            train_args_path = file_path + "/" + "train_args.pkl"
+            # save the args
+            with open(train_args_path, "wb") as f:
+                pickle.dump(self.params, f)
         # train/valid loss
         running_loss = 0
         valid_running_loss = 0
