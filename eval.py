@@ -15,9 +15,9 @@ import seaborn as sns
 from models.layers import customBERT
 from utils.common_util import (
     load_checkpoint,
-    Docloader_eval,
+    loader_eval,
     get_eval_parser,
-    seed_everything,
+    seed_init,
 )
 
 # set the environment variable
@@ -107,7 +107,7 @@ def eval(params):
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
     model = customBERT(config, train_args).to(device)
-    loader = Docloader_eval(params, train_args)
+    loader = loader_eval(params, train_args)
     eval_loader = loader.get_loader()
     evaluator = Evaluator(
         model, testing_loader=eval_loader, device=device, params=params
@@ -118,5 +118,5 @@ def eval(params):
 if __name__ == "__main__":
     params = get_eval_parser()
     if platform.system() == "Linux":
-        seed_everything(params.seed)
+        seed_init(params.seed)
     eval(params)
