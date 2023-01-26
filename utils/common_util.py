@@ -45,7 +45,7 @@ def save_checkpoint(path, model, valid_loss):
 def save_DDP_checkpoint(path, model, valid_loss):
     if path == None:
         return
-    state_dict = {"model_state_dict": model.module.state_dict(), "valid_loss": valid_loss}
+    state_dict = {"model_state_dict": model.state_dict(), "valid_loss": valid_loss}
     torch.save(state_dict, path)
     print("model saved to ==>{}".format(path))
 
@@ -64,12 +64,12 @@ def load_DDP_checkpoint(path, model):
         return
     state_dict = torch.load(path, map_location=torch.device("cpu"))
     print("loading model from <=={}".format(path))
-    new_state_dict = OrderedDict()
-    for k, v in state_dict.items():
-        name = k[7:]  # remove 'module.' of DataParallel/DistributedDataParallel
-        new_state_dict[name] = v
+    # new_state_dict = OrderedDict()
+    # for k, v in state_dict.items():
+    #     name = k[7:]  # remove 'module.' of DataParallel/DistributedDataParallel
+    #     new_state_dict[name] = v
 
-    model.load_state_dict(new_state_dict)
+    model.load_state_dict(state_dict["model_state_dict"])
     return state_dict["valid_loss"]
 
 
