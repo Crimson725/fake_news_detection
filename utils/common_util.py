@@ -410,7 +410,7 @@ def get_eval_parser():
     return args
 
 
-def get_train_parser_ddp():
+def get_train_parser_DDP():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection DDP training. Implemented model: BERT",
     )
