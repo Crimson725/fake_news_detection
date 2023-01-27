@@ -1,5 +1,6 @@
 .idea
 __pycache__/
+/preprocessing/*.ipynb
 /preprocessing/*.csv
 /model_files/bert-base-uncased/*[!*.md]
 /model_files/bert-large-cased-whole-word-masking/*[!*.md]

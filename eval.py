@@ -22,7 +22,6 @@ from utils.common_util import (
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 
-# TODO: REWRITE THE VALIDATION FUNCTION
 class Evaluator:
     def __init__(
             self, model, testing_loader=None, device=None, params=None, model_path=None

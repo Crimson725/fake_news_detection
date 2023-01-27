@@ -423,22 +423,6 @@ def get_eval_parser():
     return args
 
 
-def get_DDP_eval_parser():
-    argparser = argparse.ArgumentParser(
-        description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
-    )
-    argparser.add_argument("--seed", type=int, default=42, help="seed")
-    argparser.add_argument(
-        "--model_path", type=str, default=None, help="path to the model"
-    )
-    argparser.add_argument(
-        "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
-    )
-
-    args = argparser.parse_args()
-    return args
-
-
 def get_train_parser_DDP():
     argparser = argparse.ArgumentParser(
         description="Arg parser for fake news detection DDP training. Implemented model: BERT",
