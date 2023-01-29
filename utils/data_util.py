@@ -9,6 +9,8 @@ from transformers import BertTokenizer
 import spacy
 from fastcoref import spacy_component
 import CONFIG
+
+
 class Coref:
     def __init__(self):
         self.nlp = spacy.load("en_core_web_sm", exclude=["parser", "lemmatizer", "ner", "textcat"])
@@ -16,9 +18,12 @@ class Coref:
             "fastcoref",
             config={'model_architecture': 'LingMessCoref', 'model_path': 'biu-nlp/lingmess-coref', 'device': 'cuda:0'}
         )
-    def get_resolved_text(self,text):
-        res=self.nlp(text,component_cfg={"fastcoref": {'resolve_text': True}})._.resolved_text
+
+    def get_resolved_text(self, text):
+        res = self.nlp(text, component_cfg={"fastcoref": {'resolve_text': True}})._.resolved_text
         return res
+
+
 class DocDataset(Dataset):
     def __init__(self, dataframe, params, args=None):
         self.data = dataframe
@@ -32,21 +37,19 @@ class DocDataset(Dataset):
                 self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
             if self.params.bert_type == "bert-large-uncased":
                 self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
+        else:
+            self.args = args
+            self.max_len = self.args.max_len
+            # get tokenizer
+            if self.args.bert_type == "bert-base-uncased":
+                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
+            if self.args.bert_type == "bert-large-uncased":
+                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
 
-        self.args = args
-        self.max_len = self.args.max_len
-        # get tokenizer
-        if self.args.bert_type == "bert-base-uncased":
-            self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-        if self.args.bert_type == "bert-large-uncased":
-            self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
-
-    # bert tokenizer parameters
-    # MAX_SEQ_LEN = 128
-    # PAD_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
-    # UNK_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.unk_token)
-
-    # the entity encoder
+        # bert tokenizer parameters
+        # MAX_SEQ_LEN = 128
+        # PAD_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
+        # UNK_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.unk_token)
 
     def __len__(self):
         return len(self.text)
