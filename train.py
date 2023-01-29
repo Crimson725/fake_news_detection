@@ -11,10 +11,8 @@ from utils.common_util import (
 from utils.data_util import loader_train, DDP_loader_train
 from utils.logger import Logger
 import time
-import CONFIG
-import os
+
 from eval import Evaluator
-from DDP_eval import DDP_Evaluator
 
 from tensorboardX import SummaryWriter
 
@@ -358,7 +356,7 @@ class Trainer:
         if dist.get_rank() == 0:
             if self.params.valid_enable:
                 eval_model = self.model
-                evaluator = DDP_Evaluator(
+                evaluator = Evaluator(
                     eval_model,
                     testing_loader,
                     device=self.device,
