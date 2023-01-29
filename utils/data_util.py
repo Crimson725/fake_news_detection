@@ -30,7 +30,7 @@ class DocDataset(Dataset):
         self.text = dataframe.text
         self.targets = dataframe.label
         self.params = params
-        if __name__ in ["DDP_trainer", "trainer"]:
+        if __name__ in ["train"]:
             self.max_len = self.params.max_len
             # get tokenizer
             if self.params.bert_type == "bert-base-uncased":
