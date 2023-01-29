@@ -24,7 +24,7 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 class Evaluator:
     def __init__(
-            self, model, testing_loader=None, device=None, params=None, model_path=None
+        self, model, testing_loader=None, device=None, params=None, model_path=None
     ):
         self.model = model
         self.testing_loader = testing_loader

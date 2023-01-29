@@ -26,7 +26,9 @@ def main(params):
     if params.bert_type == "bert-base-uncased":
         config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     if params.bert_type == "bert-large-uncased":
-        config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
+        config = BertConfig.from_json_file(
+            os.path.join(CONFIG.BERT_LARGE_PATH, "config.json")
+        )
         config.label2id = CONFIG.LABEL2ID
         config.id2label = CONFIG.ID2LABEL
     torch.cuda.set_device(LOCAL_RANK)
@@ -39,7 +41,9 @@ def main(params):
 
     # DDP model
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
-    trainer = Trainer(params, model, file_path=file_path, tf_path=tf_path, device=device)
+    trainer = Trainer(
+        params, model, file_path=file_path, tf_path=tf_path, device=device
+    )
     trainer.DDP_train()
 
 

@@ -16,7 +16,9 @@ def main(params):
     if params.bert_type == "bert-base-uncased":
         config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     if params.bert_type == "bert-large-uncased":
-        config = BertConfig.from_json_file(os.path.join(CONFIG.BERT_LARGE_PATH, "config.json"))
+        config = BertConfig.from_json_file(
+            os.path.join(CONFIG.BERT_LARGE_PATH, "config.json")
+        )
         config.label2id = CONFIG.LABEL2ID
         config.id2label = CONFIG.ID2LABEL
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
@@ -24,7 +26,9 @@ def main(params):
 
     modelname = params.model_name + params.bert_type
     file_path, tf_path = get_path(modelname)
-    trainer = Trainer(params, model,  file_path=file_path, tf_path=tf_path,device=device)
+    trainer = Trainer(
+        params, model, file_path=file_path, tf_path=tf_path, device=device
+    )
     trainer.train()
 
 

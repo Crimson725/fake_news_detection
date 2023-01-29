@@ -1,4 +1,5 @@
 from transformers import TextClassificationPipeline, BertForSequenceClassification
+
 # from utils.common_util import tokenizer
 # TODO: ADD A COMMAND LINE ENTRY POINT
 
