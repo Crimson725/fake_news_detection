@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 path = os.getcwd()
 
@@ -15,6 +14,5 @@ PLOT_PATH = os.path.join(path, "figs")
 LABEL2ID = {"fake": 0, "real": 1}
 ID2LABEL = {k: v for v, k in LABEL2ID.items()}
 
-DEVICE = "cuda:7"
 
 # LOCAL_RANK = int(os.environ["LOCAL_RANK"])

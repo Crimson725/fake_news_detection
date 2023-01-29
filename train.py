@@ -7,8 +7,8 @@ import torch.distributed as dist
 from utils.common_util import (
     save_checkpoint,
     save_metrics,
-    loader_train, DDP_loader_train,
 )
+from utils.data_util import loader_train, DDP_loader_train
 from utils.logger import Logger
 import time
 import CONFIG
