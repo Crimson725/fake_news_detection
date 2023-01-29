@@ -13,10 +13,10 @@ from sklearn.metrics import classification_report
 from models.layers import customBERT
 from utils.common_util import (
     load_checkpoint,
-    loader_eval,
     get_eval_parser,
     seed_init,
 )
+from utils.data_util import loader_eval
 
 # set the environment variable
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"

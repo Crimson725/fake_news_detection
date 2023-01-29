@@ -107,14 +107,14 @@ class RebelComponent:
         if not Doc.has_extension("rel"):
             Doc.set_extension("rel", default={})
 
-    def get_wiki_id(self, item: str):
-        mapping = self.entity_mapping.get(item)
-        if mapping:
-            return mapping
-        else:
-            res = call_wiki_api(item)
-            self.entity_mapping[item] = res
-            return res
+    # def get_wiki_id(self, item: str):
+    #     mapping = self.entity_mapping.get(item)
+    #     if mapping:
+    #         return mapping
+    #     else:
+    #         res = call_wiki_api(item)
+    #         self.entity_mapping[item] = res
+    #         return res
 
     def _generate_triplets(self, sent: Span) -> List[dict]:
         output_ids = self.triplet_extractor(
@@ -151,11 +151,9 @@ class RebelComponent:
                     "relation": triplet["type"],
                     "head_span": {
                         "text": triplet["head"],
-                        "id": self.get_wiki_id(triplet["head"]),
                     },
                     "tail_span": {
                         "text": triplet["tail"],
-                        "id": self.get_wiki_id(triplet["tail"]),
                     },
                 }
 
@@ -179,27 +177,28 @@ if __name__ == "__main__":
         config={
             "model_architecture": "LingMessCoref",
             "model_path": "biu-nlp/lingmess-coref",
-            "device": "cuda:0",
+            "device": DEVICE,
         },
     )
     # get rel_ext pipeline
-    rel_ext = spacy.load(
-        "en_core_web_sm", disable=["ner", "lemmatizer", "attribute_rules", "tagger"]
-    )
-    rel_ext.add_pipe(
-        "rebel",
-        config={
-            "device": DEVICE,  # Number of the GPU, -1 if want to use CPU
-            "model_name": "Babelscape/rebel-large",
-        },
-    )  # Model used, will default to 'Babelscape/rebel-large'
+    # rel_ext = spacy.load(
+    #     "en_core_web_sm", disable=["ner", "lemmatizer", "attribute_rules", "tagger"]
+    # )
+    # rel_ext.add_pipe(
+    #     "rebel",
+    #     config={
+    #         "device": DEVICE,  # Number of the GPU, -1 if want to use CPU
+    #         "model_name": "Babelscape/rebel-large",
+    #     },
+    # )  # Model used, will default to 'Babelscape/rebel-large'
 
     text = "Alice goes down the rabbit hole. Where she would discover a new reality beyond her expectations."
 
     doc = nlp(text, component_cfg={"fastcoref": {"resolve_text": True}})
     # get coref results
     coref_text = doc._.coref_resolved
+    print(coref_text)
 
     # get the rel_ext results
-    result = rel_ext(coref_text)
-    print(result._.rel)
+    # result = rel_ext(coref_text)
+    # print(result._.rel)
