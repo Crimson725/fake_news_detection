@@ -171,7 +171,9 @@ class Trainer:
                                 valid_loss_list,
                                 global_step_list,
                             )
-                            model.config.to_json_file(self.file_path + "/" + "config.json")
+                            model.config.to_json_file(
+                                self.file_path + "/" + "config.json"
+                            )
 
                         else:
                             early_stop_counter += 1
@@ -212,7 +214,12 @@ class Trainer:
 
         loader = DDP_loader_train(self.params)
         # get the dataloader
-        training_loader, testing_loader, training_sampler, testing_sampler = loader.get_loader()
+        (
+            training_loader,
+            testing_loader,
+            training_sampler,
+            testing_sampler,
+        ) = loader.get_loader()
 
         # get the model
         model = self.model
@@ -313,7 +320,9 @@ class Trainer:
                                 )
                                 for name, param in model.named_parameters():
                                     tflogger.add_histogram(
-                                        name, param.clone().cpu().data.numpy(), global_step
+                                        name,
+                                        param.clone().cpu().data.numpy(),
+                                        global_step,
                                     )
 
                         running_loss = 0

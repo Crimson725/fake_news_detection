@@ -35,13 +35,12 @@ class customBERT(nn.Module):
         self.config = config
         if self.params.bert_type == "bert-base-uncased":
             pretrained_model = CONFIG.BERT_BASE_PATH
-            size=768
-            num_heads=12
+            size = 768
+            num_heads = 12
         elif self.params.bert_type == "bert-large-uncased":
             pretrained_model = CONFIG.BERT_LARGE_PATH
-            size=1024
-            num_heads=16
-
+            size = 1024
+            num_heads = 16
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
 
@@ -66,7 +65,6 @@ class customBERT(nn.Module):
             self.classifier = torch.nn.Linear(size * 3, 1)
         else:
             self.classifier = torch.nn.Linear(size, 1)
-
 
     def forward(self, ids, mask, token_type_ids):
 

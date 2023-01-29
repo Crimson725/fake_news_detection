@@ -13,14 +13,22 @@ import CONFIG
 
 class Coref:
     def __init__(self):
-        self.nlp = spacy.load("en_core_web_sm", exclude=["parser", "lemmatizer", "ner", "textcat"])
+        self.nlp = spacy.load(
+            "en_core_web_sm", exclude=["parser", "lemmatizer", "ner", "textcat"]
+        )
         self.nlp.add_pipe(
             "fastcoref",
-            config={'model_architecture': 'LingMessCoref', 'model_path': 'biu-nlp/lingmess-coref', 'device': 'cuda:0'}
+            config={
+                "model_architecture": "LingMessCoref",
+                "model_path": "biu-nlp/lingmess-coref",
+                "device": "cuda:0",
+            },
         )
 
     def get_resolved_text(self, text):
-        res = self.nlp(text, component_cfg={"fastcoref": {'resolve_text': True}})._.resolved_text
+        res = self.nlp(
+            text, component_cfg={"fastcoref": {"resolve_text": True}}
+        )._.resolved_text
         return res
 
 
@@ -30,7 +38,7 @@ class DocDataset(Dataset):
         self.text = dataframe.text
         self.targets = dataframe.label
         self.params = params
-        if __name__ in ["train"]:
+        if args is None:
             self.max_len = self.params.max_len
             # get tokenizer
             if self.params.bert_type == "bert-base-uncased":
@@ -178,8 +186,12 @@ class DDP_loader_train:
             test_sampler = DistributedSampler(test_set)
 
             # get the dataloader
-            training_loader = DataLoader(train_set, **train_loader_params, sampler=train_sampler)
-            testing_loader = DataLoader(test_set, **test_loader_params, sampler=test_sampler)
+            training_loader = DataLoader(
+                train_set, **train_loader_params, sampler=train_sampler
+            )
+            testing_loader = DataLoader(
+                test_set, **test_loader_params, sampler=test_sampler
+            )
         else:
             train_dataset = pd.read_csv(
                 os.path.join(CONFIG.DATA_PATH, self.params.dataset)
@@ -196,8 +208,12 @@ class DDP_loader_train:
             test_sampler = DistributedSampler(test_set)
 
             # get the loader
-            training_loader = DataLoader(train_set, **train_loader_params, sampler=train_sampler)
-            testing_loader = DataLoader(test_set, **test_loader_params, sampler=test_sampler)
+            training_loader = DataLoader(
+                train_set, **train_loader_params, sampler=train_sampler
+            )
+            testing_loader = DataLoader(
+                test_set, **test_loader_params, sampler=test_sampler
+            )
         return training_loader, testing_loader, train_sampler, test_sampler
 
 

@@ -38,10 +38,10 @@ def save_checkpoint(path, model, valid_loss):
     print("model saved to ==>{}".format(path))
 
 
-def load_checkpoint(path, model,mode=None):
+def load_checkpoint(path, model, mode=None):
     if path == None:
         return
-    if mode=="DDP":
+    if mode == "DDP":
         state_dict = torch.load(path, map_location=torch.device("cpu"))
         new_state_dict = OrderedDict()
         for k, v in state_dict["model_state_dict"].items():
@@ -144,7 +144,9 @@ def get_train_parser():
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    argparser.add_argument("--bert_type", type=str, default='bert-base-uncased', help="type of bert model")
+    argparser.add_argument(
+        "--bert_type", type=str, default="bert-base-uncased", help="type of bert model"
+    )
     argparser.add_argument(
         "--lstm",
         type=bool,
@@ -206,9 +208,7 @@ def get_eval_parser():
     argparser.add_argument(
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
     )
-    argparser.add_argument(
-        "--mode",type=str, default=None, help="eval mode"
-    )
+    argparser.add_argument("--mode", type=str, default=None, help="eval mode")
 
     args = argparser.parse_args()
     return args
@@ -257,7 +257,9 @@ def get_train_parser_DDP():
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    argparser.add_argument("--bert_type", type=str, default='bert-base-uncased', help="type of bert model")
+    argparser.add_argument(
+        "--bert_type", type=str, default="bert-base-uncased", help="type of bert model"
+    )
     argparser.add_argument(
         "--lstm",
         type=bool,
