@@ -32,6 +32,10 @@ class Coref:
         return res
 
 
+# initialize the coref class
+coref = Coref()
+
+
 class DocDataset(Dataset):
     def __init__(self, dataframe, params, args=None):
         self.data = dataframe

@@ -1,3 +1,4 @@
+import os
 import pickle
 import torch
 import torch.nn as nn
@@ -41,10 +42,10 @@ class Trainer:
         self.file_path = file_path
         self.tf_path = tf_path
 
-        self.best_metrics_path = file_path + "/" + "best_metrics.pt"
-        self.metrics_path = file_path + "/" + "metrics.pt"
-        self.train_args_path = file_path + "/" + "train_args.pkl"
-        self.model_path = file_path + "/" + "model.pt"
+        self.best_metrics_path = os.path.join(self.file_path, "best_metrics.pt")
+        self.metrics_path = os.path.join(self.file_path, "metrics.pt")
+        self.train_args_path = os.path.join(self.file_path, "train_args.pkl")
+        self.model_path = os.path.join(self.file_path, "model.pt")
 
     def train(self, best_valid_loss=float("Inf")):
 

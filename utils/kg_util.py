@@ -10,9 +10,23 @@ from transformers import pipeline
 import fastcoref
 from fastcoref import spacy_component
 
-DEVICE = 0
+import pykeen
+import torch
 
 
+# -1 for cpu
+DEVICE = -1
+class KG_embedding:
+    def __init__(self,path):
+        self.model=torch.load(path)
+        self.eneity_representation=self.model.entity_representations[0](indices=None).detach().cpu().numpy()
+        self.relation_representation=self.model.relation_representation[0](indices=None).detach().cpu().numpy()
+
+    def get_entity_embedding(self,entity:str):
+        pass
+
+    def get_relation_embedding(self,relation:str):
+        pass
 def call_wiki_api(item):
     proxies = {
         "http": "http://127.0.0.1:7890",

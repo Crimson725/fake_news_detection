@@ -1,6 +1,7 @@
 import os
 import pickle
 import platform
+import datetime
 
 import numpy as np
 from sklearn import metrics
@@ -17,9 +18,11 @@ from utils.common_util import (
     seed_init,
 )
 from utils.data_util import loader_eval
+from utils.logger import Logger
 
 # set the environment variable
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+
 
 
 class Evaluator:
@@ -91,13 +94,13 @@ class Evaluator:
         print(f"F1 Score (Macro) = {f1_score_macro}")
         print(f"Recall Score = {recall}")
         print(f"Report: {report}")
-        if logger is not None:
-            logger.log(
-                f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}, Recall Score = {recall}, Report: {report}"
-            )
+
+        logger.log(
+            f"Accuracy Score = {accuracy}, F1 Score (Micro) = {f1_score_micro}, F1 Score (Macro) = {f1_score_macro}, Recall Score = {recall}, Report: {report}"
+        )
 
 
-def eval(params):
+def eval(params,logger):
     train_args_path = os.path.join(os.path.dirname(params.model_path), "train_args.pkl")
     with open(train_args_path, "rb") as f:
         train_args = pickle.load(f)
@@ -109,11 +112,18 @@ def eval(params):
     evaluator = Evaluator(
         model, testing_loader=eval_loader, device=device, params=params
     )
-    evaluator.validation()
+    evaluator.validation(logger)
 
 
 if __name__ == "__main__":
     params = get_eval_parser()
+    # get dic path
+    dic_path=os.path.dirname(params.model_path)
+    eval_path=os.path.join(dic_path,"eval")
+    os.makedirs(eval_path)
+    # get name
+    logger=Logger("Eval",eval_path)
+
     if platform.system() == "Linux":
         seed_init(params.seed)
-    eval(params)
+    eval(params,logger)
