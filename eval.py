@@ -117,11 +117,14 @@ def eval(params,logger):
 
 if __name__ == "__main__":
     params = get_eval_parser()
+
+    # get timestamp
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # get dic path
     dic_path=os.path.dirname(params.model_path)
-    eval_path=os.path.join(dic_path,"eval")
+    eval_path=os.path.join(dic_path,timestamp,"eval")
     os.makedirs(eval_path)
-    # get name
+    # get logger
     logger=Logger("Eval",eval_path)
 
     if platform.system() == "Linux":
