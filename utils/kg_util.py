@@ -3,7 +3,8 @@ from spacy import Language
 from typing import List
 from spacy.tokens import Doc, Span
 from transformers import pipeline
-import spacy_component
+
+import utils.spacy_component
 
 import pykeen
 from pykeen.datasets import CSKG
