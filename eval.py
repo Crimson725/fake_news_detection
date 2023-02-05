@@ -20,9 +20,8 @@ from utils.common_util import (
 from utils.data_util import loader_eval
 from utils.logger import Logger
 
-# set the environment variable
+# set the environment variable for reproducibility
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-
 
 
 class Evaluator:
@@ -33,40 +32,14 @@ class Evaluator:
         self.testing_loader = testing_loader
         self.device = device
         if params is None:
+            # no params specified, validation in the training process
             load_checkpoint(model_path, self.model)
         else:
+            # use the mode to specify the ddp mode (as the model is not initliazed in DDP for evaluation)
             load_checkpoint(params.model_path, self.model, params.mode)
 
-    # for the original BERT
-    # def evaluate(self, model, test_loader):
-    #     y_pred = []
-    #     y_true = []
-    #     model.eval()
-    #     with torch.no_grad():
-    #         for _, data in enumerate(test_loader):
-    #             ids = data["ids"].to(device, dtype=torch.long)
-    #             mask = data["mask"].to(device, dtype=torch.long)
-    #             token_type_ids = data["token_type_ids"].to(device, dtype=torch.long)
-    #             targets = data["targets"].to(device, dtype=torch.float)
-    #             outputs = model(ids, mask, token_type_ids)
-    #             y_pred.extend(torch.argmax(outputs, 1).tolist())
-    #             y_true.extend(targets.tolist())
-    #     print("Classification Report: ")
-    #     print(classification_report(y_true, y_pred, target_names=CONFIG.ID2LABEL.values()))
-    #     cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
-    #     ax = plt.subplot()
-    #     fig = sns.heatmap(cm, annot=True, ax=ax, fmt="d", cmap="Blues")
-    #     fig.get_figure().savefig(CONFIG.PLOT_PATH + "/" + "confusion_matrix.png")
-    #
-    #     ax.set_title("Confusion Matrix")
-    #     ax.set_xlabel("Predicted Labels")
-    #     ax.set_ylabel("True Labels")
-    #
-    #     ax.xaxis.set_ticklabels(CONFIG.ID2LABEL.values())
-    #     ax.yaxis.set_ticklabels(CONFIG.ID2LABEL.values())
-
-    # for new
-    def validation(self, logger=None):
+    # for custom bert
+    def validation(self, logger=None, entity_enable=False):
         self.model.eval()
         fin_targets = []
         fin_outputs = []
@@ -78,7 +51,15 @@ class Evaluator:
                     self.device, dtype=torch.long
                 )
                 targets = data["targets"].to(self.device, dtype=torch.float)
-                outputs = self.model(ids, mask, token_type_ids)
+
+                if entity_enable:
+                    embedding_list = data["entity_embeddings"].to(
+                        self.device, dtype=torch.float
+                    )
+                    outputs = self.model(ids, mask, token_type_ids, embedding_list)
+                else:
+                    outputs = self.model(ids, mask, token_type_ids)
+
                 fin_targets.extend(targets.cpu().detach().numpy().tolist())
                 fin_outputs.extend(outputs.cpu().detach().numpy().tolist())
         outputs = np.array(fin_outputs) >= 0.5
@@ -100,19 +81,20 @@ class Evaluator:
         )
 
 
-def eval(params,logger):
+def eval(params, logger):
     train_args_path = os.path.join(os.path.dirname(params.model_path), "train_args.pkl")
     with open(train_args_path, "rb") as f:
         train_args = pickle.load(f)
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-    device = torch.device(torch.device("cuda:{}".format(params.cuda)))
+    device = torch.device("cuda:{}".format(params.cuda))
+    # use train_args as params to initialize the model
     model = customBERT(config, train_args).to(device)
     loader = loader_eval(params, train_args)
     eval_loader = loader.get_loader()
     evaluator = Evaluator(
         model, testing_loader=eval_loader, device=device, params=params
     )
-    evaluator.validation(logger)
+    evaluator.validation(logger, entity_enable=train_args.entity)
 
 
 if __name__ == "__main__":
@@ -121,12 +103,12 @@ if __name__ == "__main__":
     # get timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # get dic path
-    dic_path=os.path.dirname(params.model_path)
-    eval_path=os.path.join(dic_path,timestamp,"eval")
+    dic_path = os.path.dirname(params.model_path)
+    eval_path = os.path.join(dic_path, timestamp, "eval")
     os.makedirs(eval_path)
     # get logger
-    logger=Logger("Eval",eval_path)
+    logger = Logger("Eval", eval_path)
 
     if platform.system() == "Linux":
         seed_init(params.seed)
-    eval(params,logger)
+    eval(params, logger)

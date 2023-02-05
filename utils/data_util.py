@@ -10,30 +10,7 @@ import spacy
 from fastcoref import spacy_component
 import CONFIG
 
-
-class Coref:
-    def __init__(self):
-        self.nlp = spacy.load(
-            "en_core_web_sm", exclude=["parser", "lemmatizer", "ner", "textcat"]
-        )
-        self.nlp.add_pipe(
-            "fastcoref",
-            config={
-                "model_architecture": "LingMessCoref",
-                "model_path": "biu-nlp/lingmess-coref",
-                "device": "cuda:0",
-            },
-        )
-
-    def get_resolved_text(self, text):
-        res = self.nlp(
-            text, component_cfg={"fastcoref": {"resolve_text": True}}
-        )._.resolved_text
-        return res
-
-
-# initialize the coref class
-coref = Coref()
+from kg_util import KG_embedding
 
 
 class DocDataset(Dataset):
@@ -42,26 +19,22 @@ class DocDataset(Dataset):
         self.text = dataframe.text
         self.targets = dataframe.label
         self.params = params
+        # get tokenizer
+        self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
+
         if args is None:
             self.max_len = self.params.max_len
-            # get tokenizer
-            if self.params.bert_type == "bert-base-uncased":
-                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-            if self.params.bert_type == "bert-large-uncased":
-                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
+            if self.params.entity:
+                self.kg_generator = KG_embedding(params)
         else:
+            # use saved args for initialization
             self.args = args
             self.max_len = self.args.max_len
-            # get tokenizer
-            if self.args.bert_type == "bert-base-uncased":
-                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
-            if self.args.bert_type == "bert-large-uncased":
-                self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_LARGE_PATH)
-
-        # bert tokenizer parameters
-        # MAX_SEQ_LEN = 128
-        # PAD_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.pad_token)
-        # UNK_INDEX = self.tokenizer.convert_tokens_to_ids(self.tokenizer.unk_token)
+            # get entity embedding generator
+            # based on the training settings
+            if self.args.entity:
+                # use the param to specify the gpu
+                self.kg_generator = KG_embedding(params)
 
     def __len__(self):
         return len(self.text)
@@ -69,7 +42,7 @@ class DocDataset(Dataset):
     def __getitem__(self, index):
         text = str(self.text[index])
         text = " ".join(text.split())
-
+        # bert tokenization
         inputs = self.tokenizer.encode_plus(
             text,
             None,
@@ -79,6 +52,8 @@ class DocDataset(Dataset):
             padding="max_length",
             return_token_type_ids=True,
         )
+        # entity embedding
+
         ids = inputs["input_ids"]
         mask = inputs["attention_mask"]
         token_type_ids = inputs["token_type_ids"]
@@ -91,6 +66,11 @@ class DocDataset(Dataset):
             "targets": torch.tensor(self.targets[index], dtype=torch.float).unsqueeze(
                 -1
             ),
+            # a list of embedding tensors
+            # only when the entity is enabled
+            "entity_embeddings": self.kg_generator.get_embeddings(text)["head_span"]
+            if self.params.entity
+            else None,
         }
 
 
