@@ -27,7 +27,7 @@ def main(params):
     torch.cuda.set_device(LOCAL_RANK)
     model = customBERT(config, params=params).to(LOCAL_RANK)
 
-    modelname = params.model_name + params.bert_type
+    modelname = params.model_name
     file_path, tf_path = get_DDP_path(modelname)
     # save config
     model.config.to_json_file(file_path + "/" + "config.json")
