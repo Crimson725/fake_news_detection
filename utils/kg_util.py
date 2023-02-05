@@ -30,7 +30,7 @@ class KG_embedding:
             self.model.entity_representations[0](indices=None).detach().cpu().numpy()
         )
         self.relation_representation = (
-            self.model.relation_representation[0](indices=None).detach().cpu().numpy()
+            self.model.relation_representations[0](indices=None).detach().cpu().numpy()
         )
         # triple factory for indexing
         self.tf = CSKG().training
@@ -127,46 +127,3 @@ class KG_embedding:
         embedding_dict["relation"] = self.get_relation_embedding(relation_list)
 
         return embedding_dict
-
-
-# class Rebel:
-#     def __init__(self, params):
-#         self.nlp = spacy.load("en_core_web_sm")
-#         # if params.coref:
-#         #     self.nlp.add_pipe("fastcoref",
-#         #                       config={
-#         #                           "model_architecture": "LingMessCoref",
-#         #                           "model_path": "biu-nlp/lingmess-coref",
-#         #                           "device": f'cuda:{params.device_id}',
-#         #                       }, )
-#         self.nlp.add_pipe("rebel",
-#                           after="senter",
-#                           config={
-#                               'device': f'cuda:{params.device_id}',
-#                               'model_name': 'Babelscape/rebel-large'}
-#                           )
-#
-#     def get_triplets_dict(self, doc) -> {}:
-#         dict = {}
-#
-#         relation_list = []
-#         head_span_list = []
-#         tail_span_list = []
-#
-#         for _, rel_dict in doc._.rel.items():
-#             for key, value in rel_dict.items():
-#                 if key == "relation":
-#                     relation_list.append(value)
-#                 elif key == "head_span":
-#                     head_span_list.append(value)
-#                 elif key == "tail_span":
-#                     tail_span_list.append(value)
-#         # deduplicate the list
-#         relation_list = list(set(relation_list))
-#         head_span_list = list(set(head_span_list))
-#         tail_span_list = list(set(tail_span_list))
-#
-#         dict['relation'] = relation_list
-#         dict['head_span'] = head_span_list
-#         dict['tail_span'] = tail_span_list
-#         return dict
