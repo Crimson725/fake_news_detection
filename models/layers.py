@@ -55,8 +55,8 @@ class customBERT(nn.Module):
                 embed_dim=size, num_heads=num_heads
             )
 
-        if self.params.entity:
-            self.self_attention = SelfAttention()
+        # if self.params.entity:
+        #     self.self_attention = SelfAttention()
 
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
@@ -70,7 +70,7 @@ class customBERT(nn.Module):
             self.classifier = torch.nn.Linear(size, 1)
 
     # TODO: FIX THE FORWARD FUNCTION FOR ABLATION EXPERIMENT
-    def forward(self, ids, mask, token_type_ids, embeddings: list = None):
+    def forward(self, ids, mask, token_type_ids, entity_embedding):
 
         _, bert_output = self.l1(
             ids, attention_mask=mask, token_type_ids=token_type_ids, return_dict=False
@@ -84,9 +84,9 @@ class customBERT(nn.Module):
 
             # get the self attention for the attention list
             if self.params.entity:
-                attention_embedding = self.self_attention(embeddings)
+                # attention_embedding = self.self_attention(embeddings)
                 cat_lstm_multihead = torch.cat(
-                    (cat_lstm_multihead, attention_embedding), dim=-1
+                    (cat_lstm_multihead, entity_embedding), dim=-1
                 )
             dropout_output = self.dropout(cat_lstm_multihead)
             classifier_output = self.classifier(dropout_output)

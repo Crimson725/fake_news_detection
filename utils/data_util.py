@@ -11,6 +11,7 @@ from fastcoref import spacy_component
 import CONFIG
 
 from utils.kg_util import KG_embedding
+from models.layers import SelfAttention
 
 
 class DocDataset(Dataset):
@@ -21,6 +22,7 @@ class DocDataset(Dataset):
         self.params = params
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
+
 
         if args is None:
             self.max_len = self.params.max_len
