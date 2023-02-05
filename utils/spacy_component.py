@@ -93,7 +93,7 @@ def extract_triplets(text: str) -> List[str]:
     assigns=["doc._.rel"],
     default_config={
         "model_name": "Babelscape/rebel-large",
-        "device": 0,
+        "device": -1,
     },
 )
 class RebelComponent:
