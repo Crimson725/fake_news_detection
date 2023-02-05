@@ -108,6 +108,8 @@ class KG_embedding:
         relation_list = []
         head_span_list = []
         tail_span_list = []
+        
+        doc = self.nlp(doc)
 
         for _, rel_dict in doc._.rel.items():
             for key, value in rel_dict.items():
