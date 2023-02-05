@@ -10,7 +10,7 @@ import spacy
 from fastcoref import spacy_component
 import CONFIG
 
-from kg_util import KG_embedding
+from utils.kg_util import KG_embedding
 
 
 class DocDataset(Dataset):
