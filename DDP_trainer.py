@@ -1,5 +1,5 @@
 from transformers import BertConfig
-
+import pykeen
 import CONFIG
 from models.layers import customBERT
 from train import Trainer
