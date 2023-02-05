@@ -32,7 +32,7 @@ class Trainer:
             lr=self.params.lr,
             weight_decay=self.params.weight_decay,
         )
-        self.model_name = self.params.model_name + self.params.bert_type
+        self.model_name = self.params.model_name
 
         self.train_set = None
         self.test_set = None
