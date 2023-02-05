@@ -5,11 +5,10 @@ from spacy.tokens import Doc, Span
 from transformers import pipeline
 
 import utils.spacy_component
-
 import pykeen
 from pykeen.datasets import CSKG
 import torch
-
+from models.layers import SelfAttention
 import numpy as np
 
 import CONFIG
@@ -56,6 +55,8 @@ class KG_embedding:
                 "model_name": "Babelscape/rebel-large",
             },
         )
+        # combine a list of tensors into one tensor
+        self.aggregator = SelfAttention()
 
     def get_entity_embedding(self, entity_list: list) -> list:
         # list of all the entity embeddings for the doc
@@ -72,11 +73,8 @@ class KG_embedding:
                 )
 
             except:
-                # zero torch tensor
                 embeddings.append(
-                    torch.from_numpy(
-                        np.zeros(self.entity_embedding_shape, dtype=np.float32)
-                    )
+                    torch.nn.init.xavier_uniform_(torch.zeros(1, self.entity_embedding_shape)).squeeze(0)
                 )
         return embeddings
 
@@ -93,11 +91,8 @@ class KG_embedding:
                     torch.from_numpy(self.relation_representation[relation_id])
                 )
             except:
-                # zero torch tensor
                 embeddings.append(
-                    torch.from_numpy(
-                        np.zeros(self.entity_embedding_shape, dtype=np.float32)
-                    )
+                    torch.nn.init.xavier_uniform_(torch.zeros(1, self.relation_embedding_shape)).squeeze(0)
                 )
         return embeddings
 
@@ -108,7 +103,7 @@ class KG_embedding:
         relation_list = []
         head_span_list = []
         tail_span_list = []
-        
+
         doc = self.nlp(doc)
 
         for _, rel_dict in doc._.rel.items():
@@ -124,8 +119,9 @@ class KG_embedding:
         head_span_list = list(set(head_span_list))
         tail_span_list = list(set(tail_span_list))
 
-        embedding_dict["head_span"] = self.get_entity_embedding(head_span_list)
-        embedding_dict["tail_span"] = self.get_entity_embedding(tail_span_list)
-        embedding_dict["relation"] = self.get_relation_embedding(relation_list)
+        # use the aggregator to combine the list and get the final embedding tensor
+        embedding_dict["head_span"] = self.aggregator(self.get_entity_embedding(head_span_list))
+        embedding_dict["tail_span"] = self.aggregator(self.get_entity_embedding(tail_span_list))
+        embedding_dict["relation"] = self.aggregator(self.get_relation_embedding(relation_list))
 
         return embedding_dict
