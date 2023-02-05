@@ -51,7 +51,7 @@ class KG_embedding:
             "rebel",
             after="senter",
             config={
-                "device": -1,
+                "device": 0,
                 "model_name": "Babelscape/rebel-large",
             },
         )
