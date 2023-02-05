@@ -108,6 +108,8 @@ def get_train_parser():
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
+    argparser.add_argument("--entity", type=bool, default=True, help="use entity")
+
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
     )
@@ -144,9 +146,7 @@ def get_train_parser():
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    argparser.add_argument(
-        "--bert_type", type=str, default="bert-base-uncased", help="type of bert model"
-    )
+
     argparser.add_argument(
         "--lstm",
         type=bool,
@@ -198,10 +198,10 @@ def get_train_parser():
 
 def get_eval_parser():
     argparser = argparse.ArgumentParser(
-        description="Arg parser for fake news detection. Implemented model: BERT, TextCNN",
+        description="Arg parser for fake news detection. Implemented model: BERT",
     )
     argparser.add_argument("--seed", type=int, default=42, help="seed")
-    argparser.add_argument("--cuda", type=int, default=0, help="device id")
+    argparser.add_argument("--cuda", type=int, default=0, help="cuda device")
     argparser.add_argument(
         "--model_path", type=str, default=None, help="path to the model"
     )
@@ -220,6 +220,14 @@ def get_train_parser_DDP():
     )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
+    argparser.add_argument(
+        "--cuda", type=int, default=5, help="device id (for kg utils)"
+    )
+
+    argparser.add_argument("--coref", type=bool, default=False, help="use coref")
+    argparser.add_argument(
+        "--entity", type=bool, default=False, help="use entity embeddings"
+    )
 
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
@@ -257,9 +265,7 @@ def get_train_parser_DDP():
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
     argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
-    argparser.add_argument(
-        "--bert_type", type=str, default="bert-base-uncased", help="type of bert model"
-    )
+
     argparser.add_argument(
         "--lstm",
         type=bool,

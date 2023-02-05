@@ -33,14 +33,10 @@ class customBERT(nn.Module):
 
         # load the bert with provided config
         self.config = config
-        if self.params.bert_type == "bert-base-uncased":
-            pretrained_model = CONFIG.BERT_BASE_PATH
-            size = 768
-            num_heads = 12
-        elif self.params.bert_type == "bert-large-uncased":
-            pretrained_model = CONFIG.BERT_LARGE_PATH
-            size = 1024
-            num_heads = 16
+
+        pretrained_model = CONFIG.BERT_BASE_PATH
+        size = 768
+        num_heads = 12
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
 
@@ -58,15 +54,23 @@ class customBERT(nn.Module):
             self.multihead_attention = nn.MultiheadAttention(
                 embed_dim=size, num_heads=num_heads
             )
+
+        if self.params.entity:
+            self.self_attention = SelfAttention()
+
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
         # add classification layer
         if self.params.multihead_attention:
-            self.classifier = torch.nn.Linear(size * 3, 1)
+            if self.params.entity:
+                self.classifier = torch.nn.Linear(size * 3 + 50, 1)
+            else:
+                self.classifier = torch.nn.Linear(size * 3, 1)
         else:
             self.classifier = torch.nn.Linear(size, 1)
 
-    def forward(self, ids, mask, token_type_ids):
+    # TODO: FIX THE FORWARD FUNCTION FOR ABLATION EXPERIMENT
+    def forward(self, ids, mask, token_type_ids, embeddings: list = None):
 
         _, bert_output = self.l1(
             ids, attention_mask=mask, token_type_ids=token_type_ids, return_dict=False
@@ -77,6 +81,13 @@ class customBERT(nn.Module):
                 bert_output, bert_output, bert_output
             )
             cat_lstm_multihead = torch.cat((lstm_output, multihead_output), dim=-1)
+
+            # get the self attention for the attention list
+            if self.params.entity:
+                attention_embedding = self.self_attention(embeddings)
+                cat_lstm_multihead = torch.cat(
+                    (cat_lstm_multihead, attention_embedding), dim=-1
+                )
             dropout_output = self.dropout(cat_lstm_multihead)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
@@ -100,3 +111,32 @@ class customBERT(nn.Module):
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
+
+
+class SelfAttention(nn.Module):
+    # take a list of tensors as input
+    def __init__(self, input_size=50, attention_size=128):
+        super(SelfAttention, self).__init__()
+        self.input_size = input_size
+        self.attention_size = attention_size
+        self.fc1 = nn.Linear(input_size, attention_size)
+        self.fc2 = nn.Linear(attention_size, 1)
+
+    def forward(self, tensor_list):
+        # calculate attention scores
+        attention_scores = torch.zeros(len(tensor_list), 1)
+        for i, tensor in enumerate(tensor_list):
+            tensor = tensor.view(-1, self.input_size)
+            attention_scores[i] = self.fc2(torch.tanh(self.fc1(tensor)))
+
+        # normalize the scores
+        attention_weights = torch.softmax(attention_scores, dim=0)
+
+        # apply the scores to the input tensors
+        weighted_tensors = [
+            attention_weights[i] * tensor for i, tensor in enumerate(tensor_list)
+        ]
+        weighted_tensors = torch.stack(weighted_tensors)
+
+        # return the sum of weighted tensors
+        return torch.sum(weighted_tensors, dim=0).view(1, -1).squeeze(0)

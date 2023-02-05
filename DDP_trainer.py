@@ -23,14 +23,7 @@ device = torch.device("cuda", LOCAL_RANK)
 
 def main(params):
     # init the model
-    if params.bert_type == "bert-base-uncased":
-        config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-    if params.bert_type == "bert-large-uncased":
-        config = BertConfig.from_json_file(
-            os.path.join(CONFIG.BERT_LARGE_PATH, "config.json")
-        )
-        config.label2id = CONFIG.LABEL2ID
-        config.id2label = CONFIG.ID2LABEL
+    config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     torch.cuda.set_device(LOCAL_RANK)
     model = customBERT(config, params=params).to(LOCAL_RANK)
 

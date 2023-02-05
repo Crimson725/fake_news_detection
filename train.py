@@ -283,7 +283,15 @@ class Trainer:
                 targets = data["targets"].to(self.device, dtype=torch.float)
 
                 optimizer.zero_grad()
-                output = model(ids, mask, token_type_ids)
+
+                # entity enable
+                if self.params.entity:
+                    embedding_list = data["entity_embeddings"].to(
+                        self.device, dtype=torch.float
+                    )
+                    output = model(ids, mask, token_type_ids, embedding_list)
+                else:
+                    output = model(ids, mask, token_type_ids)
 
                 loss = loss_fn(output, targets)
                 loss.backward()
@@ -291,6 +299,7 @@ class Trainer:
 
                 running_loss += loss.item()
                 global_step += 1
+
                 if global_step % eval_every == 0:
                     model.eval()
                     with torch.no_grad():
@@ -301,8 +310,17 @@ class Trainer:
                                 self.device, dtype=torch.long
                             )
                             targets = data["targets"].to(self.device, dtype=torch.float)
+                            # entity enable
+                            if self.params.entity:
+                                embedding_list = data["entity_embeddings"].to(
+                                    self.device, dtype=torch.float
+                                )
+                                output = model(
+                                    ids, mask, token_type_ids, embedding_list
+                                )
+                            else:
+                                output = model(ids, mask, token_type_ids)
 
-                            output = model(ids, mask, token_type_ids)
                             loss = loss_fn(output, targets)
                             valid_running_loss += loss.item()
 
@@ -364,6 +382,7 @@ class Trainer:
                                 )
                             break
         if dist.get_rank() == 0:
+            # validation
             if self.params.valid_enable:
                 eval_model = self.model
                 evaluator = Evaluator(
@@ -375,7 +394,8 @@ class Trainer:
                 )
                 if dist.get_rank() == 0:
                     logger.log("--------------------Evaluation--------------------")
-                evaluator.validation(logger)
+
+                evaluator.validation(logger, entity_enable=self.params.entity)
 
             save_metrics(
                 self.metrics_path,

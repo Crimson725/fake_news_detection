@@ -15,12 +15,7 @@ def main(params):
     # init the model
     if params.bert_type == "bert-base-uncased":
         config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
-    if params.bert_type == "bert-large-uncased":
-        config = BertConfig.from_json_file(
-            os.path.join(CONFIG.BERT_LARGE_PATH, "config.json")
-        )
-        config.label2id = CONFIG.LABEL2ID
-        config.id2label = CONFIG.ID2LABEL
+
     device = torch.device(torch.device("cuda:{}".format(params.cuda)))
     model = customBERT(config, params=params).to(device)
 
