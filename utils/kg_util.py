@@ -52,7 +52,7 @@ class KG_embedding:
             "rebel",
             after="senter",
             config={
-                "device": f"cuda:{self.params.cuda}",
+                "device": self.params.cuda,
                 "model_name": "Babelscape/rebel-large",
             },
         )
