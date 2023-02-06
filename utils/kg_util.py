@@ -19,8 +19,7 @@ DEVICE = -1
 
 class KG_embedding:
     # used to generate entity embedding for a document
-    def __init__(self, params):
-        self.params = params
+    def __init__(self, aggregator):
 
         # load the embedding model (pkl file)
         self.model = torch.load(CONFIG.KG_PATH)
@@ -56,7 +55,7 @@ class KG_embedding:
             },
         )
         # combine a list of tensors into one tensor
-        self.aggregator = SelfAttention()
+        self.aggregator = aggregator
 
     def get_entity_embedding(self, entity_list: list) -> list:
         # list of all the entity embeddings for the doc
@@ -73,6 +72,7 @@ class KG_embedding:
                 )
 
             except:
+                # incase the entity is not in the KG
                 embeddings.append(
                     torch.nn.init.xavier_uniform_(torch.zeros(1, self.entity_embedding_shape)).squeeze(0)
                 )
@@ -91,6 +91,7 @@ class KG_embedding:
                     torch.from_numpy(self.relation_representation[relation_id])
                 )
             except:
+                # incase the relation is not in the KG
                 embeddings.append(
                     torch.nn.init.xavier_uniform_(torch.zeros(1, self.relation_embedding_shape)).squeeze(0)
                 )
