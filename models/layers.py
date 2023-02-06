@@ -123,6 +123,9 @@ class SelfAttention(nn.Module):
         self.fc2 = nn.Linear(attention_size, 1)
 
     def forward(self, tensor_list):
+        if len(tensor_list) == 0 or tensor_list is None:
+            # avoid empty tensor error
+            return torch.nn.init.xavier_uniform_(torch.zeros(1, self.relation_embedding_shape)).squeeze(0)
         # calculate attention scores
         attention_scores = torch.zeros(len(tensor_list), 1)
         for i, tensor in enumerate(tensor_list):
