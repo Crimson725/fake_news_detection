@@ -37,27 +37,9 @@ class KG_embedding:
         self.relation_embedding_shape = self.relation_representation.shape[1]
 
         # load rebel model
-
-        self.nlp = spacy.load("en_core_web_sm")
-        # if params.coref:
-        #     self.nlp.add_pipe("fastcoref",
-        #                       config={
-        #                           "model_architecture": "LingMessCoref",
-        #                           "model_path": "biu-nlp/lingmess-coref",
-        #                           "device": f'cuda:{params.device_id}',
-        #                       }, )
-        self.nlp.add_pipe(
-            "rebel",
-            after="senter",
-            config={
-                "device": -1,
-                "model_name": "Babelscape/rebel-large",
-            },
-        )
-        # combine a list of tensors into one tensor
         self.aggregator = aggregator
 
-    def get_entity_embedding(self, entity_list: list) -> list:
+    def entity_embedding(self, entity_list: List[str]) -> List[torch.Tensor]:
         # list of all the entity embeddings for the doc
         # return a list of tensors
         embeddings = []
@@ -78,7 +60,7 @@ class KG_embedding:
                 )
         return embeddings
 
-    def get_relation_embedding(self, relation_list: list) -> list:
+    def relation_embedding(self, relation_list: List[str]) -> List[torch.Tensor]:
         # list of all the entity embeddings for the doc
         # return a list of tensors
         embeddings = []
@@ -97,32 +79,10 @@ class KG_embedding:
                 )
         return embeddings
 
-    def get_embeddings(self, doc) -> {}:
-        # take the doc as input and return a dictionary of embeddings
-        embedding_dict = {}
-
-        relation_list = []
-        head_span_list = []
-        tail_span_list = []
-
-        doc = self.nlp(doc)
-
-        for _, rel_dict in doc._.rel.items():
-            for key, value in rel_dict.items():
-                if key == "relation":
-                    relation_list.append(value)
-                elif key == "head_span":
-                    head_span_list.append(value)
-                elif key == "tail_span":
-                    tail_span_list.append(value)
-        # deduplicate the list
-        relation_list = list(set(relation_list))
-        head_span_list = list(set(head_span_list))
-        tail_span_list = list(set(tail_span_list))
-
+    def get_entity_embedding(self, entity_list: List[str]) -> torch.Tensor:
         # use the aggregator to combine the list and get the final embedding tensor
-        embedding_dict["head_span"] = self.aggregator(self.get_entity_embedding(head_span_list))
-        embedding_dict["tail_span"] = self.aggregator(self.get_entity_embedding(tail_span_list))
-        embedding_dict["relation"] = self.aggregator(self.get_relation_embedding(relation_list))
+        return self.aggregator(self.entity_embedding(entity_list))
 
-        return embedding_dict
+    def get_relation_embedding(self, relation_list: List[str]) -> torch.Tensor:
+        # use the aggregator to combine the list and get the final embedding tensor
+        return self.aggregator(self.relation_embedding(relation_list))

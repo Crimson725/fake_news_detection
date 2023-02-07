@@ -1,7 +1,7 @@
 from transformers import TextClassificationPipeline, BertForSequenceClassification
 
 # from utils.common_util import tokenizer
-# TODO: ADD A COMMAND LINE ENTRY POINT
+# TODO: REWRITE THE INFERENCE FUNCTION FOR MODEL
 
 # new version
 model = BertForSequenceClassification.from_pretrained(
