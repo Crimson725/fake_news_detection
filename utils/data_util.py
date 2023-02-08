@@ -72,9 +72,9 @@ class DocDataset(Dataset):
         # relation_list=self.relation[index]
 
         # get the entity embedding
-        entity_embedding = self.kg_generator.get_entity_embedding(head_list)
+        entity_embedding = self.kg_generator.generate_entity_embedding(head_list)
         # get the relation embedding
-        # relation_embedding=self.kg_generator.get_relation_embedding(relation_list)
+        # relation_embedding=self.kg_generator.generate_relation_embedding(relation_list)
 
         return {
             "ids": torch.tensor(ids, dtype=torch.long),
