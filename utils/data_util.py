@@ -70,13 +70,13 @@ class DocDataset(Dataset):
         head_list = self.head_entity[index]
         # tail_list=self.tail_entity[index]
         # relation_list=self.relation[index]
-
-        # get the head_entity embedding
-        entity_embedding = self.kg_generator.generate_entity_embedding(head_list)
-        # get the tail_entity embedding
-        # entity_embedding = self.kg_generator.generate_entity_embedding(tail_list)
-        # get the relation embedding
-        # relation_embedding=self.kg_generator.generate_relation_embedding(relation_list)
+        if self.params.entity:
+            # get the head_entity embedding
+            entity_embedding = self.kg_generator.generate_entity_embedding(head_list)
+            # get the tail_entity embedding
+            # entity_embedding = self.kg_generator.generate_entity_embedding(tail_list)
+            # get the relation embedding
+            # relation_embedding=self.kg_generator.generate_relation_embedding(relation_list)
 
         return {
             "ids": torch.tensor(ids, dtype=torch.long),
