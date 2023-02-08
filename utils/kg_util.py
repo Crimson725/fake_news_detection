@@ -1,21 +1,9 @@
-import spacy
-from spacy import Language
 from typing import List
-from spacy.tokens import Doc, Span
-from transformers import pipeline
-
-import utils.spacy_component
 import pykeen
 from pykeen.datasets import CSKG
 import torch
-from models.layers import SelfAttention
-import numpy as np
 
 import CONFIG
-
-# -1 for cpu
-DEVICE = -1
-
 
 class KG_embedding:
     # used to generate entity embedding for a document
