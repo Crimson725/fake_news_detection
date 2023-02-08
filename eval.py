@@ -53,10 +53,10 @@ class Evaluator:
                 targets = data["targets"].to(self.device, dtype=torch.float)
 
                 if entity_enable:
-                    embedding_list = data["entity_embeddings"].to(
+                    entity_embedding = data["entity_embedding"].to(
                         self.device, dtype=torch.float
                     )
-                    outputs = self.model(ids, mask, token_type_ids, embedding_list)
+                    outputs = self.model(ids, mask, token_type_ids, entity_embedding)
                 else:
                     outputs = self.model(ids, mask, token_type_ids)
 

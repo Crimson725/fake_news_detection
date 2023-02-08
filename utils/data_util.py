@@ -20,6 +20,12 @@ class DocDataset(Dataset):
         self.text = dataframe.text
         self.targets = dataframe.label
         self.params = params
+        # the entity list
+        self.head = dataframe.head
+        # self.tail=dataframe.tail
+        # the relation list
+        # self.relation=dataframe.relation
+
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
 
@@ -60,10 +66,15 @@ class DocDataset(Dataset):
         mask = inputs["attention_mask"]
         token_type_ids = inputs["token_type_ids"]
 
-        # get the trimmed text for kg
-        max_len = 256
+        # get the entity list
+        head_list = self.head[index]
+        # tail_list=self.tail[index]
+        # relation_list=self.relation[index]
 
-        trimmed_text = text[:max_len]
+        # get the entity embedding
+        entity_embedding = self.kg_generator.get_entity_embedding(head_list)
+        # get the relation embedding
+        # relation_embedding=self.kg_generator.get_relation_embedding(relation_list)
 
         return {
             "ids": torch.tensor(ids, dtype=torch.long),
@@ -75,9 +86,7 @@ class DocDataset(Dataset):
             ),
             # a list of embedding tensors
             # only when the entity is enabled
-            "entity_embeddings": self.kg_generator.get_embeddings(trimmed_text)["head_span"]
-            if self.params.entity
-            else None,
+            "entity_embedding": entity_embedding if self.params.entity else None,
         }
 
 

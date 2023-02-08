@@ -286,7 +286,7 @@ class Trainer:
 
                 # entity enable
                 if self.params.entity:
-                    entity_embedding = data["entity_embeddings"].to(
+                    entity_embedding = data["entity_embedding"].to(
                         self.device, dtype=torch.float
                     )
                     output = model(ids, mask, token_type_ids, entity_embedding)
@@ -312,7 +312,7 @@ class Trainer:
                             targets = data["targets"].to(self.device, dtype=torch.float)
                             # entity enable
                             if self.params.entity:
-                                entity_embedding = data["entity_embeddings"].to(
+                                entity_embedding = data["entity_embedding"].to(
                                     self.device, dtype=torch.float
                                 )
                                 output = model(
