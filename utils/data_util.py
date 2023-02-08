@@ -21,7 +21,7 @@ class DocDataset(Dataset):
         self.targets = dataframe.label
         self.params = params
         # the entity list
-        self.head = dataframe.head
+        self.head_entity = dataframe.head_entity
         # self.tail=dataframe.tail
         # the relation list
         # self.relation=dataframe.relation
@@ -67,8 +67,8 @@ class DocDataset(Dataset):
         token_type_ids = inputs["token_type_ids"]
 
         # get the entity list
-        head_list = self.head[index]
-        # tail_list=self.tail[index]
+        head_list = self.head_entity[index]
+        # tail_list=self.tail_entity[index]
         # relation_list=self.relation[index]
 
         # get the entity embedding
