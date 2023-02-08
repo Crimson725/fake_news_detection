@@ -72,7 +72,7 @@ class customBERT(nn.Module):
             self.classifier = torch.nn.Linear(size, 1)
 
     # TODO: FIX THE FORWARD FUNCTION FOR ABLATION EXPERIMENT
-    def forward(self, ids, mask, token_type_ids, entity_embedding):
+    def forward(self, ids, mask, token_type_ids, entity_embedding=None):
 
         _, bert_output = self.l1(
             ids, attention_mask=mask, token_type_ids=token_type_ids, return_dict=False
