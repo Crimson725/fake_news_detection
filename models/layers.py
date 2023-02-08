@@ -63,6 +63,8 @@ class customBERT(nn.Module):
         # add classification layer
         if self.params.multihead_attention:
             if self.params.entity:
+                # size*3 = multihead attention
+                # +50 = entity embedding shape
                 self.classifier = torch.nn.Linear(size * 3 + 50, 1)
             else:
                 self.classifier = torch.nn.Linear(size * 3, 1)
@@ -82,7 +84,6 @@ class customBERT(nn.Module):
             )
             cat_lstm_multihead = torch.cat((lstm_output, multihead_output), dim=-1)
 
-            # get the self attention for the attention list
             if self.params.entity:
                 # attention_embedding = self.self_attention(embeddings)
                 cat_lstm_multihead = torch.cat(

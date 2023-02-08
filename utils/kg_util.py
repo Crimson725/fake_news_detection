@@ -36,10 +36,10 @@ class KG_embedding:
         self.entity_embedding_shape = self.eneity_representation.shape[1]
         self.relation_embedding_shape = self.relation_representation.shape[1]
 
-        # load rebel model
+        # the aggregator will take a list of tensors and return a single tensor
         self.aggregator = aggregator
 
-    def entity_embedding(self, entity_list: List[str]) -> List[torch.Tensor]:
+    def generate_entity_embedding(self, entity_list: List[str]) -> List[torch.Tensor]:
         # list of all the entity embeddings for the doc
         # return a list of tensors
         embeddings = []
@@ -56,11 +56,16 @@ class KG_embedding:
             except:
                 # incase the entity is not in the KG
                 embeddings.append(
-                    torch.nn.init.xavier_uniform_(torch.zeros(1, self.entity_embedding_shape)).squeeze(0)
+                    torch.nn.init.xavier_uniform_(
+                        torch.zeros(1, self.entity_embedding_shape)
+                    ).squeeze(0)
                 )
-        return embeddings
+        embedding = self.aggregator(embeddings)
+        return embedding
 
-    def relation_embedding(self, relation_list: List[str]) -> List[torch.Tensor]:
+    def generate_relation_embedding(
+        self, relation_list: List[str]
+    ) -> List[torch.Tensor]:
         # list of all the entity embeddings for the doc
         # return a list of tensors
         embeddings = []
@@ -75,14 +80,9 @@ class KG_embedding:
             except:
                 # incase the relation is not in the KG
                 embeddings.append(
-                    torch.nn.init.xavier_uniform_(torch.zeros(1, self.relation_embedding_shape)).squeeze(0)
+                    torch.nn.init.xavier_uniform_(
+                        torch.zeros(1, self.relation_embedding_shape)
+                    ).squeeze(0)
                 )
-        return embeddings
-
-    def get_entity_embedding(self, entity_list: List[str]) -> torch.Tensor:
-        # use the aggregator to combine the list and get the final embedding tensor
-        return self.aggregator(self.entity_embedding(entity_list))
-
-    def get_relation_embedding(self, relation_list: List[str]) -> torch.Tensor:
-        # use the aggregator to combine the list and get the final embedding tensor
-        return self.aggregator(self.relation_embedding(relation_list))
+        embedding = self.aggregator(embeddings)
+        return embedding
