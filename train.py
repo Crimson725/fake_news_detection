@@ -136,10 +136,10 @@ class Trainer:
                         global_step_list.append(global_step)
                         if tflogger is not None:
                             tflogger.add_scalar(
-                                "Training loss", average_train_loss, global_step
+                                "Training_loss", average_train_loss, global_step
                             )
                             tflogger.add_scalar(
-                                "Validation loss", average_valid_loss, global_step
+                                "Validation_loss", average_valid_loss, global_step
                             )
                             for name, param in model.named_parameters():
                                 tflogger.add_histogram(

@@ -208,7 +208,9 @@ def get_eval_parser():
     argparser.add_argument(
         "--eval_dataset", type=str, default=None, help="path to the evaluation dataset"
     )
-    argparser.add_argument("--mode", type=str, default=None, help="eval mode")
+    argparser.add_argument("--mode", type=str, default=None, help="eval mode (DDP)")
+
+    argparser.add_argument("--entity", type=bool, default=False, help="use entity")
 
     args = argparser.parse_args()
     return args
