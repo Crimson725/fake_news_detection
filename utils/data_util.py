@@ -88,7 +88,7 @@ class DocDataset(Dataset):
             ),
             # a list of embedding tensors
             # only when the entity is enabled
-            "entity_embedding": entity_embedding if self.params.entity else None,
+            "entity_embedding": [] if not self.params.entity else entity_embedding,
         }
 
 
