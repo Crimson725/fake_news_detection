@@ -2,8 +2,9 @@ from typing import List
 import pykeen
 from pykeen.datasets import CSKG
 import torch
-
+import re
 import CONFIG
+
 
 class KG_embedding:
     # used to generate entity embedding for a document
@@ -34,6 +35,8 @@ class KG_embedding:
         for i in entity_list:
             try:
                 # find the entity_id for indexing
+                # for example: piano->/c/en/piano
+                i='/c/en/'+re.sub('[^A-Za-z0-9]+', '', i).lower()
                 entity_id = self.tf.entity_to_id[i]
                 # add to the embeddings list
                 # torch tensor

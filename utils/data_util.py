@@ -67,9 +67,9 @@ class DocDataset(Dataset):
         token_type_ids = inputs["token_type_ids"]
         if self.params.entity:
             # get the entity list
-            head_list = self.head_entity[index]
-            # tail_list=self.tail_entity[index]
-            # relation_list=self.relation[index]
+            head_list = self.head_entity[index].strip('][').split(', ')
+            # tail_list=ast.literal_eval(self.tail_entity[index]).strip('][').split(', ')
+            # relation_list=ast.literal_eval(self.relation[index]).strip('][').split(', ')
 
             # get the head_entity embedding
             entity_embedding = self.kg_generator.generate_entity_embedding(head_list)

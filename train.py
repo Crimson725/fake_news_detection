@@ -273,6 +273,7 @@ class Trainer:
         for epoch in range(epochs):
             # set epoch for shuffle
             training_sampler.set_epoch(epoch)
+            testing_sampler.set_epoch(epoch)
 
             for _, data in enumerate(training_loader):
                 ids = data["ids"].to(self.device, dtype=torch.long)

@@ -35,8 +35,12 @@ class customBERT(nn.Module):
         self.config = config
 
         pretrained_model = CONFIG.BERT_BASE_PATH
+        # the size for bert base is 768
         size = 768
         num_heads = 12
+        
+        # the size of the entity embedding
+        entity_size=50
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
 
@@ -55,8 +59,6 @@ class customBERT(nn.Module):
                 embed_dim=size, num_heads=num_heads
             )
 
-        # if self.params.entity:
-        #     self.self_attention = SelfAttention()
 
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
@@ -65,11 +67,14 @@ class customBERT(nn.Module):
             if self.params.entity:
                 # size*3 = multihead attention
                 # +50 = entity embedding shape
-                self.classifier = torch.nn.Linear(size * 3 + 50, 1)
+                self.classifier = torch.nn.Linear(size * 3 + entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(size * 3, 1)
         else:
-            self.classifier = torch.nn.Linear(size, 1)
+            if self.params.entity:
+                self.classifier = torch.nn.Linear(size+entity_size, 1)
+            else:
+                self.classifier = torch.nn.Linear(size, 1)
 
     # TODO: FIX THE FORWARD FUNCTION FOR ABLATION EXPERIMENT
     def forward(self, ids, mask, token_type_ids, entity_embedding=None):
