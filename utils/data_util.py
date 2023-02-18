@@ -22,9 +22,9 @@ class DocDataset(Dataset):
         self.params = params
         # the entity list
         self.head_entity = dataframe.head_entity
-        self.tail_entity=dataframe.tail_entity
+        self.tail_entity = dataframe.tail_entity
         # the relation list
-        self.relation=dataframe.relation
+        self.relation = dataframe.relation
 
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
@@ -67,14 +67,19 @@ class DocDataset(Dataset):
         token_type_ids = inputs["token_type_ids"]
         if self.params.entity:
             # get the entity list
-            head_list = self.head_entity[index].strip('][').split(', ')
-            # tail_list=ast.literal_eval(self.tail_entity[index]).strip('][').split(', ')
-            # relation_list=ast.literal_eval(self.relation[index]).strip('][').split(', ')
+            # head_list = self.head_entity[index].strip('][').split(', ')
+
+            tail_list = self.tail_entity[index].strip("][").split(", ")
+
+            # get the relation list
+            # relation_list=self.relation[index].strip('][').split(', ')
 
             # get the head_entity embedding
-            entity_embedding = self.kg_generator.generate_entity_embedding(head_list)
+            # entity_embedding = self.kg_generator.generate_entity_embedding(head_list)
+
             # get the tail_entity embedding
-            # entity_embedding = self.kg_generator.generate_entity_embedding(tail_list)
+            entity_embedding = self.kg_generator.generate_entity_embedding(tail_list)
+
             # get the relation embedding
             # relation_embedding=self.kg_generator.generate_relation_embedding(relation_list)
 

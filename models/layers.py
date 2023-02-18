@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.init as init
 from transformers import BertModel, BertForSequenceClassification
 import CONFIG
 import nltk
@@ -38,9 +39,9 @@ class customBERT(nn.Module):
         # the size for bert base is 768
         size = 768
         num_heads = 12
-        
+
         # the size of the entity embedding
-        entity_size=50
+        entity_size = 50
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
 
@@ -59,7 +60,6 @@ class customBERT(nn.Module):
                 embed_dim=size, num_heads=num_heads
             )
 
-
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
         # add classification layer
@@ -72,9 +72,22 @@ class customBERT(nn.Module):
                 self.classifier = torch.nn.Linear(size * 3, 1)
         else:
             if self.params.entity:
-                self.classifier = torch.nn.Linear(size+entity_size, 1)
+                self.classifier = torch.nn.Linear(size + entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(size, 1)
+
+        # initialize the weights using Xavier Normal
+        self.init_weights()
+
+    def init_weights(self):
+        if self.params.lstm:
+            for name, param in self.lstm.named_parameters():
+                if "weight" in name:
+                    init.xavier_normal_(param)
+        if self.params.multihead_attention:
+            for name, param in self.multihead_attention.named_parameters():
+                if "weight" in name:
+                    init.xavier_normal_(param)
 
     # TODO: FIX THE FORWARD FUNCTION FOR ABLATION EXPERIMENT
     def forward(self, ids, mask, token_type_ids, entity_embedding=None):
@@ -127,6 +140,10 @@ class SelfAttention(nn.Module):
         self.attention_size = attention_size
         self.fc1 = nn.Linear(input_size, attention_size)
         self.fc2 = nn.Linear(attention_size, 1)
+
+        # initialize the weights using Xavier Normal
+        init.xavier_uniform_(self.fc1.weight)
+        init.xavier_uniform_(self.fc2.weight)
 
     def forward(self, tensor_list):
         if len(tensor_list) == 0 or tensor_list is None:
