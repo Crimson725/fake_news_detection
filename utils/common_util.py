@@ -210,7 +210,7 @@ def get_eval_parser():
     )
     argparser.add_argument("--mode", type=str, default=None, help="eval mode (DDP)")
 
-    argparser.add_argument("--entity", type=bool, default=False, help="use entity")
+    argparser.add_argument("--entity", type=bool, default=True, help="use entity")
 
     args = argparser.parse_args()
     return args
@@ -228,7 +228,7 @@ def get_train_parser_DDP():
 
     argparser.add_argument("--coref", type=bool, default=False, help="use coref")
     argparser.add_argument(
-        "--entity", type=bool, default=False, help="use entity embeddings"
+        "--entity", type=bool, default=True, help="use entity embeddings"
     )
 
     argparser.add_argument(
@@ -289,7 +289,7 @@ def get_train_parser_DDP():
     )
 
     argparser.add_argument(
-        "--weight_decay", type=float, default=0.0, help="weight decay of adam"
+        "--weight_decay", type=float, default=1e-6, help="weight decay of adam"
     )
     argparser.add_argument(
         "--model_name", type=str, default="customBERT", help="name of the model"
