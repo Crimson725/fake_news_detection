@@ -218,13 +218,10 @@ def get_eval_parser():
 
 def get_train_parser_DDP():
     argparser = argparse.ArgumentParser(
-        description="Arg parser for fake news detection DDP training. Implemented model: BERT",
+        description="Arg parser for fake news detection using DDP training. Model Used: bert-base-uncased; Entity Embedding: CSKG dataset"
     )
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
-    # argparser.add_argument(
-    #     "--cuda", type=int, default=4, help="device id (for kg utils)"
-    # )
 
     argparser.add_argument("--coref", type=bool, default=False, help="use coref")
     argparser.add_argument(
