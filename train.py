@@ -31,6 +31,7 @@ class Trainer:
             self.model.parameters(),
             lr=self.params.lr,
             weight_decay=self.params.weight_decay,
+            eps=1e-4,
         )
         self.model_name = self.params.model_name
 
@@ -413,3 +414,5 @@ class Trainer:
                 f"Model: {str(model.__class__.__name__)}, Best valid loss: {best_valid_loss}, Elapsed time: {elapsed_time}"
             )
         print("Finished Training!")
+
+        exit()
