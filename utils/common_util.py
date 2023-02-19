@@ -108,7 +108,9 @@ def get_train_parser():
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
     argparser.add_argument("--cuda", type=int, default=0, help="device id")
-    argparser.add_argument("--entity", type=bool, default=True, help="use entity")
+    argparser.add_argument(
+        "--entity", type=bool, action="store_true", help="use entity"
+    )
 
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
@@ -150,13 +152,13 @@ def get_train_parser():
     argparser.add_argument(
         "--lstm",
         type=bool,
-        default=False,
+        action="store_true",
         help="use lstm",
     )
     argparser.add_argument(
         "--multihead_attention",
         type=bool,
-        default=False,
+        action="store_true",
         help="use multihead attention",
     )
 
@@ -177,19 +179,19 @@ def get_train_parser():
     argparser.add_argument(
         "--log_args",
         type=bool,
-        default=True,
+        action="store_true",
         help="log the args of the training process",
     )
     argparser.add_argument(
         "--verbose",
         type=bool,
-        default=True,
+        action="store_true",
         help="log verbose (loss) info of the training process",
     )
     argparser.add_argument(
         "--print_logs",
         type=bool,
-        default=False,
+        action="store_true",
         help="print the verbose info of the training process",
     )
     args = argparser.parse_args()
@@ -210,7 +212,9 @@ def get_eval_parser():
     )
     argparser.add_argument("--mode", type=str, default=None, help="eval mode (DDP)")
 
-    argparser.add_argument("--entity", type=bool, default=True, help="use entity")
+    argparser.add_argument(
+        "--entity", type=bool, action="store_true", help="use entity"
+    )
 
     args = argparser.parse_args()
     return args
@@ -223,9 +227,8 @@ def get_train_parser_DDP():
 
     argparser.add_argument("--seed", type=int, default=42, help="seed")
 
-    argparser.add_argument("--coref", type=bool, default=False, help="use coref")
     argparser.add_argument(
-        "--entity", type=bool, default=True, help="use entity embeddings"
+        "--entity", type=bool, action="store_true", help="use entity embeddings"
     )
 
     argparser.add_argument(
@@ -268,13 +271,13 @@ def get_train_parser_DDP():
     argparser.add_argument(
         "--lstm",
         type=bool,
-        default=False,
+        action="store_true",
         help="use lstm",
     )
     argparser.add_argument(
         "--multihead_attention",
         type=bool,
-        default=False,
+        action="store_true",
         help="use multihead attention",
     )
 
@@ -295,19 +298,19 @@ def get_train_parser_DDP():
     argparser.add_argument(
         "--log_args",
         type=bool,
-        default=True,
+        action="store_true",
         help="log the args of the training process",
     )
     argparser.add_argument(
         "--verbose",
         type=bool,
-        default=True,
+        action="store_true",
         help="log verbose (loss) info of the training process",
     )
     argparser.add_argument(
         "--print_logs",
         type=bool,
-        default=False,
+        action="store_true",
         help="print the verbose info of the training process",
     )
     args = argparser.parse_args()
