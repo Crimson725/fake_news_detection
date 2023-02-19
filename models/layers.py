@@ -98,26 +98,25 @@ class customBERT(nn.Module):
         if hasattr(self, "lstm") and hasattr(self, "multihead_attention"):
             lstm_output, _ = self.lstm(bert_output)
             multihead_output, _ = self.multihead_attention(
-                bert_output, bert_output, bert_output
+                lstm_output, lstm_output, lstm_output
             )
-            cat_lstm_multihead = torch.cat((lstm_output, multihead_output), dim=-1)
+            # final_output = torch.cat((lstm_output, multihead_output), dim=-1)
+            final_output = multihead_output
 
             if self.params.entity:
                 # attention_embedding = self.self_attention(embeddings)
-                cat_lstm_multihead = torch.cat(
-                    (cat_lstm_multihead, entity_embedding), dim=-1
-                )
-            dropout_output = self.dropout(cat_lstm_multihead)
+                final_output = torch.cat((final_output, entity_embedding), dim=-1)
+            dropout_output = self.dropout(final_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
-        elif hasattr(self, "lstm"):
+        elif hasattr(self, "lstm") and not hasattr(self, "multihead_attention"):
             lstm_output, _ = self.lstm(bert_output)
             dropout_output = self.dropout(lstm_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
-        elif hasattr(self, "multihead_attention"):
+        elif hasattr(self, "multihead_attention") and not hasattr(self, "lstm"):
             multihead_output, _ = self.multihead_attention(
                 bert_output, bert_output, bert_output
             )
