@@ -57,7 +57,7 @@ class customBERT(nn.Module):
         # initialize multihead attention layer
         if self.params.multihead_attention:
             self.multihead_attention = nn.MultiheadAttention(
-                embed_dim=size, num_heads=num_heads
+                embed_dim=size * 2, num_heads=num_heads
             )
 
         # add dropout
@@ -67,9 +67,9 @@ class customBERT(nn.Module):
             if self.params.entity:
                 # size*3 = multihead attention
                 # +50 = entity embedding shape
-                self.classifier = torch.nn.Linear(size * 3 + entity_size, 1)
+                self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
             else:
-                self.classifier = torch.nn.Linear(size * 3, 1)
+                self.classifier = torch.nn.Linear(size * 2, 1)
         else:
             if self.params.entity:
                 self.classifier = torch.nn.Linear(size + entity_size, 1)
