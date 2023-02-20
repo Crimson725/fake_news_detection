@@ -30,8 +30,8 @@ def main(params):
     modelname = params.model_name
     if dist.get_rank() == 0:
         file_path, tf_path = get_DDP_path(modelname)
-    # save config
-    model.config.to_json_file(file_path + "/" + "config.json")
+        # save config
+        model.config.to_json_file(file_path + "/" + "config.json")
 
     # DDP model
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
