@@ -28,17 +28,17 @@ def main(params):
     model = customBERT(config, params=params).to(LOCAL_RANK)
 
     modelname = params.model_name
-    if dist.get_rank() == 0:
-        file_path, tf_path = get_DDP_path(modelname)
-        # save config
-        model.config.to_json_file(file_path + "/" + "config.json")
 
-        # DDP model
-        model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
-        trainer = Trainer(
-            params, model, file_path=file_path, tf_path=tf_path, device=device
-        )
-        trainer.DDP_train()
+    file_path, tf_path = get_DDP_path(modelname)
+    # save config
+    model.config.to_json_file(file_path + "/" + "config.json")
+
+    # DDP model
+    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
+    trainer = Trainer(
+        params, model, file_path=file_path, tf_path=tf_path, device=device
+    )
+    trainer.DDP_train()
 
 
 if __name__ == "__main__":
