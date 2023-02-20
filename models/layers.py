@@ -75,10 +75,16 @@ class customBERT(nn.Module):
         #         self.classifier = torch.nn.Linear(size*2 + entity_size, 1)
         #     else:
         #         self.classifier = torch.nn.Linear(size*2, 1)
-        if self.params.entity:
-            self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
+        if self.params.lstm:
+            if self.params.entity:
+                self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
+            else:
+                self.classifier = torch.nn.Linear(size * 2, 1)
         else:
-            self.classifier = torch.nn.Linear(size * 2, 1)
+            if self.params.entity:
+                self.classifier = torch.nn.Linear(size + entity_size, 1)
+            else:
+                self.classifier = torch.nn.Linear(size, 1)
 
         # initialize the weights using Xavier Normal
         self.init_weights()
