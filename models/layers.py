@@ -70,9 +70,9 @@ class customBERT(nn.Module):
 
         if self.params.lstm:
             if self.params.entity:
-                self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
+                self.classifier = torch.nn.Linear(size * 4 + entity_size, 1)
             else:
-                self.classifier = torch.nn.Linear(size * 2, 1)
+                self.classifier = torch.nn.Linear(size * 4, 1)
         else:
             if self.params.entity:
                 self.classifier = torch.nn.Linear(size + entity_size, 1)
