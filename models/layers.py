@@ -132,7 +132,7 @@ class customBERT(nn.Module):
             lstm_output, _ = self.lstm(bert_output)
             # 768*2+50
             if self.params.entity:
-                lstm_output=torch.cat((lstm_output, entity_embedding), dim=-1))
+                lstm_output = torch.cat((lstm_output, entity_embedding), dim=-1)
             dropout_output = self.dropout(lstm_output)
             # shape 768*2 (lstm)
             classifier_output = self.classifier(dropout_output)
@@ -143,10 +143,10 @@ class customBERT(nn.Module):
                 bert_output, bert_output, bert_output
             )
             # shape 768
-            final_output=multihead_output
+            final_output = multihead_output
             # shape 768+50
             if self.params.entity:
-                final_output=torch.cat((final_output, entity_embedding), dim=-1))
+                final_output = torch.cat((final_output, entity_embedding), dim=-1)
             dropout_output = self.dropout(final_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
@@ -154,7 +154,7 @@ class customBERT(nn.Module):
         else:
             # shape 768+50
             if self.params.entity:
-                bert_output=torch.cat((bert_output, entity_embedding), dim=-1))
+                bert_output = torch.cat((bert_output, entity_embedding), dim=-1)
             dropout_output = self.dropout(bert_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
