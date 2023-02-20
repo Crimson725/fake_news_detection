@@ -33,12 +33,12 @@ def main(params):
         # save config
         model.config.to_json_file(file_path + "/" + "config.json")
 
-    # DDP model
-    model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
-    trainer = Trainer(
-        params, model, file_path=file_path, tf_path=tf_path, device=device
-    )
-    trainer.DDP_train()
+        # DDP model
+        model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
+        trainer = Trainer(
+            params, model, file_path=file_path, tf_path=tf_path, device=device
+        )
+        trainer.DDP_train()
 
 
 if __name__ == "__main__":
