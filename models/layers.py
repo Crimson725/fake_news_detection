@@ -56,9 +56,14 @@ class customBERT(nn.Module):
             )
         # initialize multihead attention layer
         if self.params.multihead_attention:
-            self.multihead_attention = nn.MultiheadAttention(
-                embed_dim=size * 2, num_heads=num_heads
-            )
+            if self.params.lstm:
+                self.multihead_attention = nn.MultiheadAttention(
+                    embed_dim=size * 2, num_heads=num_heads
+                )
+            else:
+                self.multihead_attention = nn.MultiheadAttention(
+                    embed_dim=size, num_heads=num_heads
+                )
 
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
