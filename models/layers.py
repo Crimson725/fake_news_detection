@@ -103,13 +103,13 @@ class customBERT(nn.Module):
             multihead_output, _ = self.multihead_attention(
                 lstm_output, lstm_output, lstm_output
             )
-            # final_output = torch.cat((lstm_output, multihead_output), dim=-1)
-            final_output = multihead_output
+            cat_output = torch.cat((lstm_output, multihead_output), dim=-1)
+            # final_output = multihead_output
 
             if self.params.entity:
                 # attention_embedding = self.self_attention(embeddings)
-                final_output = torch.cat((final_output, entity_embedding), dim=-1)
-            dropout_output = self.dropout(final_output)
+                cat_output = torch.cat((cat_output, entity_embedding), dim=-1)
+            dropout_output = self.dropout(cat_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
@@ -123,7 +123,8 @@ class customBERT(nn.Module):
             multihead_output, _ = self.multihead_attention(
                 bert_output, bert_output, bert_output
             )
-            dropout_output = self.dropout(multihead_output)
+            final_output = torch.cat((bert_output, multihead_output), dim=-1)
+            dropout_output = self.dropout(final_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
