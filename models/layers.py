@@ -48,6 +48,7 @@ class customBERT(nn.Module):
         # initialize lstm layer
         if self.params.lstm:
             # hidden_size corresponds to bert
+            # output shape = size*2 (due to bidirectional)
             self.lstm = nn.LSTM(
                 input_size=size,
                 hidden_size=size,
@@ -68,13 +69,27 @@ class customBERT(nn.Module):
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
 
-        if self.params.lstm:
+        if self.params.lstm and self.params.multihead_attention:
             if self.params.entity:
+                # 768*2*2+50
                 self.classifier = torch.nn.Linear(size * 4 + entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(size * 4, 1)
+        elif self.params.lstm and not self.params.multihead_attention:
+            if self.params.entity:
+                # 768*2+50
+                self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
+            else:
+                self.classifier = torch.nn.Linear(size * 2, 1)
+        elif self.params.multihead_attention and not self.params.lstm:
+            if self.params.entity:
+                # 768+50
+                self.classifier = torch.nn.Linear(size + entity_size, 1)
+            else:
+                self.classifier = torch.nn.Linear(size, 1)
         else:
             if self.params.entity:
+                # 768+50
                 self.classifier = torch.nn.Linear(size + entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(size, 1)
@@ -105,7 +120,7 @@ class customBERT(nn.Module):
             )
             cat_output = torch.cat((lstm_output, multihead_output), dim=-1)
             # final_output = multihead_output
-
+            # concat the entity embedding to the output
             if self.params.entity:
                 # attention_embedding = self.self_attention(embeddings)
                 cat_output = torch.cat((cat_output, entity_embedding), dim=-1)
@@ -115,7 +130,11 @@ class customBERT(nn.Module):
             return final_output
         elif hasattr(self, "lstm") and not hasattr(self, "multihead_attention"):
             lstm_output, _ = self.lstm(bert_output)
+            # 768*2+50
+            if self.params.entity:
+                lstm_output=torch.cat((lstm_output, entity_embedding), dim=-1))
             dropout_output = self.dropout(lstm_output)
+            # shape 768*2 (lstm)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
@@ -123,12 +142,19 @@ class customBERT(nn.Module):
             multihead_output, _ = self.multihead_attention(
                 bert_output, bert_output, bert_output
             )
-            final_output = torch.cat((bert_output, multihead_output), dim=-1)
+            # shape 768
+            final_output=multihead_output
+            # shape 768+50
+            if self.params.entity:
+                final_output=torch.cat((final_output, entity_embedding), dim=-1))
             dropout_output = self.dropout(final_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
         else:
+            # shape 768+50
+            if self.params.entity:
+                bert_output=torch.cat((bert_output, entity_embedding), dim=-1))
             dropout_output = self.dropout(bert_output)
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
