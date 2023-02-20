@@ -132,7 +132,7 @@ def get_train_parser():
         default=None,
         help="the path to the validation dataset (only when valid_enable is True)",
     )
-    argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
+    argparser.add_argument("--lr", type=float, default=0.001, help="learning rate")
     argparser.add_argument(
         "--train_batch", type=int, default=8, help="training set batch size"
     )
@@ -244,7 +244,7 @@ def get_train_parser_DDP():
         default=None,
         help="the path to the validation dataset (only when valid_enable is True)",
     )
-    argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
+    argparser.add_argument("--lr", type=float, default=0.001, help="learning rate")
     argparser.add_argument(
         "--train_batch", type=int, default=8, help="training set batch size"
     )

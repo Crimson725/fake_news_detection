@@ -28,7 +28,8 @@ def main(params):
     model = customBERT(config, params=params).to(LOCAL_RANK)
 
     modelname = params.model_name
-    file_path, tf_path = get_DDP_path(modelname)
+    if dist.get_rank() == 0:
+        file_path, tf_path = get_DDP_path(modelname)
     # save config
     model.config.to_json_file(file_path + "/" + "config.json")
 
