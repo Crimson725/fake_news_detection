@@ -67,19 +67,7 @@ class customBERT(nn.Module):
 
         # add dropout
         self.dropout = torch.nn.Dropout(dropout)
-        # add classification layer
-        # if self.params.multihead_attention:
-        #     if self.params.entity:
-        #         # size*3 = multihead attention
-        #         # +50 = entity embedding shape
-        #         self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
-        #     else:
-        #         self.classifier = torch.nn.Linear(size * 2, 1)
-        # else:
-        #     if self.params.entity:
-        #         self.classifier = torch.nn.Linear(size*2 + entity_size, 1)
-        #     else:
-        #         self.classifier = torch.nn.Linear(size*2, 1)
+
         if self.params.lstm:
             if self.params.entity:
                 self.classifier = torch.nn.Linear(size * 2 + entity_size, 1)
