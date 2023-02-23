@@ -269,7 +269,6 @@ def get_train_parser_DDP():
         action="store_true",
         help="use multihead attention",
     )
-
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )

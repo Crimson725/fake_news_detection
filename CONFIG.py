@@ -10,6 +10,8 @@ BERT_BASE_PATH = os.path.join(path, "model_files/bert-base-uncased")
 PLOT_PATH = os.path.join(path, "figs")
 # kg embedding path
 KG_PATH = os.path.join(path, "model_files/CSKG_embeddings/TransE/trained_model.pkl")
+# KG_PATH = os.path.join(path, "model_files/CSKG_embeddings/AutoSF/trained_model.pkl")
+# KG_PATH = os.path.join(path, "model_files/CSKG_embeddings/RotatE/trained_model.pkl")
 
 # label dict
 LABEL2ID = {"fake": 0, "real": 1}
