@@ -8,6 +8,7 @@ from torch.utils.data import Dataset, DataLoader, DistributedSampler
 from transformers import BertTokenizer
 import spacy
 from fastcoref import spacy_component
+from rapidfuzzy import process
 import CONFIG
 
 from utils.kg_util import KG_embedding
@@ -207,3 +208,10 @@ class loader_eval:
         eval_set = DocDataset(eval_dataset, self.params, args=self.train_args)
         eval_loader = DataLoader(eval_set, **eval_loader_params)
         return eval_loader
+
+
+def fuzzy_index(entity, labels):
+    # labels are the entity list from the dataset
+    # do fuzzy matching based on Levenshtein Distance
+    best_match = process.extractOne(entity, labels)
+    return best_match[0]
