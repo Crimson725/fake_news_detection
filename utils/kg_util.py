@@ -13,7 +13,7 @@ class KG_embedding:
     def __init__(self, aggregator):
 
         # load the embedding model (pkl file)
-        self.model = torch.load(CONFIG.KG_PATH)
+        self.model = torch.load(CONFIG.KG_PATH, map_location=torch.device("cpu"))
         # get embeddings from the model
         self.eneity_representation = (
             self.model.entity_representations[0](indices=None).detach().cpu().numpy()
