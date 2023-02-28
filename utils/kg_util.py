@@ -3,7 +3,7 @@ import pykeen
 from pykeen.datasets import CSKG
 import torch
 import torch.nn.init as init
-from utils.data_util import fuzzy_index
+from utils.data_util import fuzz_index
 import re
 import CONFIG
 
@@ -47,7 +47,7 @@ class KG_embedding:
                 # i = "/c/en/" + re.sub("[^A-Za-z0-9]+", "", i).lower()
                 # entity_id = self.tf.entity_to_id[i]
                 # add to the embeddings list
-                entity = fuzzy_index(i, self.entity_labels)
+                entity = fuzz_index(i, self.entity_labels)
                 entity_id = self.tf.entity_to_id[entity]
                 embeddings.append(
                     torch.from_numpy(self.eneity_representation[entity_id])
@@ -72,7 +72,7 @@ class KG_embedding:
         for i in relation_list:
             try:
                 # find the relation_id for indexing
-                relation = fuzzy_index(i, self.relation_labels)
+                relation = fuzz_index(i, self.relation_labels)
                 relation_id = self.tf.relation_to_id[relation]
                 # get the embedding
                 embeddings.append(
