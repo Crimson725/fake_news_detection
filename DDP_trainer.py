@@ -25,7 +25,10 @@ def main(params):
     # init the model
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     torch.cuda.set_device(LOCAL_RANK)
-    model = customBERT(config,entity_size=params.entity_size params=params).to(LOCAL_RANK)
+
+    model = customBERT(config, entity_size=params.entity_size, params=params).to(
+        LOCAL_RANK
+    )
 
     modelname = params.model_name
     # TODO FIX THE DUPLICATE DIR ISSUE
