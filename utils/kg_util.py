@@ -3,9 +3,16 @@ import pykeen
 from pykeen.datasets import CSKG
 import torch
 import torch.nn.init as init
-from utils.data_util import fuzz_index
 import re
 import CONFIG
+from rapidfuzz import process
+
+
+def fuzz_index(entity, labels):
+    # labels are the entity list from the dataset
+    # do fuzzy matching based on Levenshtein Distance
+    best_match = process.extractOne(entity, labels)
+    return best_match[0]
 
 
 class KG_embedding:
