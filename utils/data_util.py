@@ -11,7 +11,6 @@ from fastcoref import spacy_component
 import CONFIG
 
 from utils.kg_util import KG_embedding
-from models.layers import SelfAttention
 
 
 class DocDataset(Dataset):
@@ -29,12 +28,10 @@ class DocDataset(Dataset):
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
 
-        self.aggregator = SelfAttention()
-
         if args is None:
             self.max_len = self.params.max_len
             if self.params.entity:
-                self.kg_generator = KG_embedding(self.aggregator)
+                self.kg_generator = KG_embedding()
         else:
             # use saved args for initialization
             self.args = args
@@ -42,7 +39,7 @@ class DocDataset(Dataset):
             # get entity embedding generator
             # based on the training settings
             if self.args.entity:
-                self.kg_generator = KG_embedding(self.aggregator)
+                self.kg_generator = KG_embedding()
 
     def __len__(self):
         return len(self.text)

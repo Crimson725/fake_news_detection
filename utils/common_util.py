@@ -220,7 +220,7 @@ def get_train_parser_DDP():
     )
     argparser.add_argument(
         "--valid_enable",
-        action="store_true",
+        action="store_false",
         help="validation using another dataset",
     )
 
