@@ -11,7 +11,6 @@ from fastcoref import spacy_component
 import CONFIG
 
 from utils.kg_util import KG_embedding
-from models.layers import SelfAttention
 
 
 class DocDataset(Dataset):
@@ -29,12 +28,10 @@ class DocDataset(Dataset):
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
 
-        self.aggregator = SelfAttention()
-
         if args is None:
             self.max_len = self.params.max_len
             if self.params.entity:
-                self.kg_generator = KG_embedding(self.aggregator)
+                self.kg_generator = KG_embedding()
         else:
             # use saved args for initialization
             self.args = args
@@ -42,7 +39,7 @@ class DocDataset(Dataset):
             # get entity embedding generator
             # based on the training settings
             if self.args.entity:
-                self.kg_generator = KG_embedding(self.aggregator)
+                self.kg_generator = KG_embedding()
 
     def __len__(self):
         return len(self.text)
@@ -123,30 +120,14 @@ class loader_train:
             "generator": g,
         }
         # dataset settings
-        if self.params.valid_enable is False:
-            train_size = self.params.frac
-            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
-                drop=True
-            )
-            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
-
-            # get the train set and test set
-            train_set = DocDataset(train_dataset, self.params)
-            test_set = DocDataset(test_dataset, self.params)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
-        else:
-            train_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
-            )
-            test_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
-            )
-            train_set = DocDataset(train_dataset, self.params)
-            test_set = DocDataset(test_dataset, self.params)
-            training_loader = DataLoader(train_set, **train_loader_params)
-            testing_loader = DataLoader(test_set, **test_loader_params)
+        train_dataset = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+        test_dataset = pd.read_csv(
+            os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
+        )
+        train_set = DocDataset(train_dataset, self.params)
+        test_set = DocDataset(test_dataset, self.params)
+        training_loader = DataLoader(train_set, **train_loader_params)
+        testing_loader = DataLoader(test_set, **test_loader_params)
         return training_loader, testing_loader
 
 
@@ -176,51 +157,25 @@ class DDP_loader_train:
             "generator": g,
         }
         # dataset settings
-        if self.params.valid_enable is False:
-            train_size = self.params.frac
-            df = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
-            train_dataset = df.sample(frac=train_size, random_state=200).reset_index(
-                drop=True
-            )
-            test_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+        train_dataset = pd.read_csv(os.path.join(CONFIG.DATA_PATH, self.params.dataset))
+        test_dataset = pd.read_csv(
+            os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
+        )
+        # get the dataset
+        train_set = DocDataset(train_dataset, self.params)
+        test_set = DocDataset(test_dataset, self.params)
 
-            # get the train set and test set
-            train_set = DocDataset(train_dataset, self.params)
-            test_set = DocDataset(test_dataset, self.params)
+        # get the sampler
+        train_sampler = DistributedSampler(train_set)
+        test_sampler = DistributedSampler(test_set)
 
-            # get the sampler
-            train_sampler = DistributedSampler(train_set)
-            test_sampler = DistributedSampler(test_set)
-
-            # get the dataloader
-            training_loader = DataLoader(
-                train_set, **train_loader_params, sampler=train_sampler
-            )
-            testing_loader = DataLoader(
-                test_set, **test_loader_params, sampler=test_sampler
-            )
-        else:
-            train_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.dataset)
-            )
-            test_dataset = pd.read_csv(
-                os.path.join(CONFIG.DATA_PATH, self.params.valid_dataset)
-            )
-            # get the dataset
-            train_set = DocDataset(train_dataset, self.params)
-            test_set = DocDataset(test_dataset, self.params)
-
-            # get the sampler
-            train_sampler = DistributedSampler(train_set)
-            test_sampler = DistributedSampler(test_set)
-
-            # get the loader
-            training_loader = DataLoader(
-                train_set, **train_loader_params, sampler=train_sampler
-            )
-            testing_loader = DataLoader(
-                test_set, **test_loader_params, sampler=test_sampler
-            )
+        # get the loader
+        training_loader = DataLoader(
+            train_set, **train_loader_params, sampler=train_sampler
+        )
+        testing_loader = DataLoader(
+            test_set, **test_loader_params, sampler=test_sampler
+        )
         return training_loader, testing_loader, train_sampler, test_sampler
 
 
