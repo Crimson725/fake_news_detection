@@ -214,6 +214,8 @@ def get_train_parser_DDP():
     argparser.add_argument(
         "--entity", action="store_true", help="use entity embeddings"
     )
+    argparser.add_argument("--entity_mode", choices=["transe", "rotate", "autosf"])
+    argparser.add_argument("--entity_size", type=int, help="entity embedding dimension")
 
     argparser.add_argument(
         "--dataset", type=str, default="real_and_fake/train.csv", help="dataset"
@@ -286,4 +288,15 @@ def get_train_parser_DDP():
         help="print the verbose info of the training process",
     )
     args = argparser.parse_args()
+
+    if args.entity:
+        if args.entity_mode is None:
+            raise ValueError("Entity mode is required when using entity embeddings")
+        elif args.entity_mode == "transe":
+            args.entity_size = 50
+        elif args.entity_mode == "rotate":
+            args.entity_size = 64
+        elif args.entity_mode == "autosf":
+            args.entity_size = 32
+
     return args
