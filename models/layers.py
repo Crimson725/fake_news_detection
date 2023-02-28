@@ -3,8 +3,6 @@ from torch import nn
 import torch.nn.init as init
 from transformers import BertModel, BertForSequenceClassification
 import CONFIG
-import nltk
-from nltk import tokenize
 
 
 class BERT(nn.Module):
@@ -70,25 +68,25 @@ class customBERT(nn.Module):
 
         if self.params.lstm and self.params.multihead_attention:
             if self.params.entity:
-                # 768*2*2+50
+                # 768*2*2+entity_size
                 self.classifier = torch.nn.Linear(self.size * 4 + self.entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(self.size * 4, 1)
         elif self.params.lstm and not self.params.multihead_attention:
             if self.params.entity:
-                # 768*2+50
+                # 768*2+entity_size
                 self.classifier = torch.nn.Linear(self.size * 2 + self.entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(self.size * 2, 1)
         elif self.params.multihead_attention and not self.params.lstm:
             if self.params.entity:
-                # 768+50
+                # 768+entity_size
                 self.classifier = torch.nn.Linear(self.size + self.entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(self.size, 1)
         else:
             if self.params.entity:
-                # 768+50
+                # 768+entity_size
                 self.classifier = torch.nn.Linear(self.size + self.entity_size, 1)
             else:
                 self.classifier = torch.nn.Linear(self.size, 1)
@@ -158,3 +156,42 @@ class customBERT(nn.Module):
             classifier_output = self.classifier(dropout_output)
             final_output = torch.sigmoid(classifier_output)
             return final_output
+
+
+class SelfAttention(nn.Module):
+    # take a list of tensors as input
+    # using this to aggregate the context information of the entities in the news content
+    # the input size depends on the embedding size
+    # the output shape is (1, input_size)
+    def __init__(self, input_size, attention_size=128):
+        super(SelfAttention, self).__init__()
+        self.input_size = input_size
+        self.attention_size = attention_size
+        self.fc1 = nn.Linear(input_size, attention_size)
+        self.fc2 = nn.Linear(attention_size, 1)
+
+        # initialize the weights using Xavier Normal
+        init.xavier_uniform_(self.fc1.weight)
+        init.xavier_uniform_(self.fc2.weight)
+
+    def forward(self, tensor_list):
+        if len(tensor_list) == 0 or tensor_list is None:
+            # avoid empty tensor error
+            return torch.nn.init.xavier_uniform_(torch.zeros(1, 50)).squeeze(0)
+        # calculate attention scores
+        attention_scores = torch.zeros(len(tensor_list), 1)
+        for i, tensor in enumerate(tensor_list):
+            tensor = tensor.view(-1, self.input_size)
+            attention_scores[i] = self.fc2(torch.tanh(self.fc1(tensor)))
+
+        # normalize the scores
+        attention_weights = torch.softmax(attention_scores, dim=0)
+
+        # apply the scores to the input tensors
+        weighted_tensors = [
+            attention_weights[i] * tensor for i, tensor in enumerate(tensor_list)
+        ]
+        weighted_tensors = torch.stack(weighted_tensors)
+
+        # return the sum of weighted tensors
+        return torch.sum(weighted_tensors, dim=0).view(1, -1).squeeze(0)
