@@ -41,11 +41,6 @@ def tensorlogs(model, inputs):
     writer.add_graph(model, inputs)
 
 
-# TODO: REWRITE THE CODES FOR PLOTTING THE MODEL STRUCTURE USING EXAMPLE INPUT
-
-
-# plot_model_structure(model, inputs, 'model.png')
-# tensorlogs(model, inputs)
 if __name__ == "__main__":
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     model = customBERT(config).to(device)

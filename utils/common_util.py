@@ -116,16 +116,9 @@ def get_train_parser():
     argparser.add_argument(
         "--valid_enable",
         action="store_true",
-        default=True,
         help="validation using another dataset",
     )
     valid_enable_group = argparser.add_mutually_exclusive_group(required=True)
-    valid_enable_group.add_argument(
-        "--frac",
-        type=float,
-        default=None,
-        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
-    )
     valid_enable_group.add_argument(
         "--valid_dataset",
         type=str,
@@ -228,16 +221,10 @@ def get_train_parser_DDP():
     argparser.add_argument(
         "--valid_enable",
         action="store_true",
-        default=True,
         help="validation using another dataset",
     )
+
     valid_enable_group = argparser.add_mutually_exclusive_group(required=True)
-    valid_enable_group.add_argument(
-        "--frac",
-        type=float,
-        default=None,
-        help="the fraction of the dataset to use for validation (only when valid_enable is False)",
-    )
     valid_enable_group.add_argument(
         "--valid_dataset",
         type=str,
