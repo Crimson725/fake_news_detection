@@ -9,10 +9,11 @@ from rapidfuzz import process
 
 
 def fuzz_index(entity, labels):
-    # labels are the entity list from the dataset
-    # do fuzzy matching based on Levenshtein Distance
-    best_match = process.extractOne(entity, labels)
-    return best_match[0]
+    scores = process.cdist([entity], labels, workers=-1)
+    max_index = scores.argmax()
+    best_match = labels[max_index]
+    # return the string
+    return best_match
 
 
 class KG_embedding:
@@ -32,8 +33,8 @@ class KG_embedding:
         self.tf = CSKG().training
 
         # label for indexing
-        self.entity_labels = self.tf.entity_id_to_label.values()
-        self.relation_labels = self.tf.relation_id_to_label.values()
+        self.entity_labels = list(self.tf.entity_id_to_label.values())
+        self.relation_labels = list(self.tf.relation_id_to_label.values())
 
         # shape of the embedding
         self.entity_embedding_shape = self.eneity_representation.shape[1]
@@ -54,7 +55,7 @@ class KG_embedding:
                 # i = "/c/en/" + re.sub("[^A-Za-z0-9]+", "", i).lower()
                 # entity_id = self.tf.entity_to_id[i]
                 # add to the embeddings list
-                entity = fuzz_index(i.lower(), self.entity_labels)
+                entity = fuzz_index(i, self.entity_labels)
                 entity_id = self.tf.entity_to_id[entity]
                 embeddings.append(
                     torch.from_numpy(self.eneity_representation[entity_id])
@@ -79,7 +80,7 @@ class KG_embedding:
         for i in relation_list:
             try:
                 # find the relation_id for indexing
-                relation = fuzz_index(i.lower(), self.relation_labels)
+                relation = fuzz_index(i, self.relation_labels)
                 relation_id = self.tf.relation_to_id[relation]
                 # get the embedding
                 embeddings.append(
