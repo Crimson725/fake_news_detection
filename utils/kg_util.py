@@ -5,15 +5,6 @@ import torch
 import torch.nn.init as init
 import re
 import CONFIG
-from rapidfuzz import process
-
-
-def fuzz_index(entity, labels):
-    scores = process.cdist([entity], labels, workers=-1)
-    max_index = scores.argmax()
-    best_match = labels[max_index]
-    # return the string
-    return best_match
 
 
 class KG_embedding:
@@ -50,13 +41,8 @@ class KG_embedding:
         embeddings = []
         for i in entity_list:
             try:
-                # find the entity_id for indexing, only for CSKG graph
-                # for example: piano->/c/en/piano
-                # i = "/c/en/" + re.sub("[^A-Za-z0-9]+", "", i).lower()
-                # entity_id = self.tf.entity_to_id[i]
                 # add to the embeddings list
-                entity = fuzz_index(i, self.entity_labels)
-                entity_id = self.tf.entity_to_id[entity]
+                entity_id = self.tf.entity_to_id[i]
                 embeddings.append(
                     torch.from_numpy(self.eneity_representation[entity_id])
                 )
@@ -79,9 +65,7 @@ class KG_embedding:
         embeddings = []
         for i in relation_list:
             try:
-                # find the relation_id for indexing
-                relation = fuzz_index(i, self.relation_labels)
-                relation_id = self.tf.relation_to_id[relation]
+                relation_id = self.tf.relation_to_id[i]
                 # get the embedding
                 embeddings.append(
                     torch.from_numpy(self.relation_representation[relation_id])

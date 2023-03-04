@@ -6,5 +6,12 @@ __pycache__/
 /model_files/trained_models/*[!*.md]
 /model_files/rebel-large/*[!*.md]
 /model_files/CSKG_embeddings/TransE/*[!*.md]
+/model_files/DDP_trained_models/*
+/model_files/trained_models/*
+/model_files/bert-large-uncased/
+
 .vscode/
 datasets/LUN/lun.csv
+model_files/bert-large-cased-whole-word-masking
+model_files/CSKG_embeddings/AutoSF/trained_model.pkl
+model_files/CSKG_embeddings/RotatE/trained_model.pkl
