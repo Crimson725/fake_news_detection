@@ -11,7 +11,8 @@ __pycache__/
 /model_files/bert-large-uncased/
 
 .vscode/
-datasets/*
+datasets/LUN/*
+datasets/SLN/*
 model_files/bert-large-cased-whole-word-masking
 model_files/CSKG_embeddings/AutoSF/trained_model.pkl
 model_files/CSKG_embeddings/RotatE/trained_model.pkl
