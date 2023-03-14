@@ -17,6 +17,10 @@ from eval import Evaluator
 
 from tensorboardX import SummaryWriter
 
+from utils.pytorchtools import EarlyStopping
+
+# create early stopper
+
 
 class Trainer:
     def __init__(self, params, model, file_path=None, tf_path=None, device=None):
@@ -47,6 +51,21 @@ class Trainer:
         self.metrics_path = os.path.join(self.file_path, "metrics.pt")
         self.train_args_path = os.path.join(self.file_path, "train_args.pkl")
         self.model_path = os.path.join(self.file_path, "model.pt")
+
+        # get the early stopper
+        self.early_stopping = EarlyStopping(
+            patience=self.early_stop_patience, verbose=True, path=self.model_path
+        )
+
+    def entity_check(self, model, data, ids, mask, token_type_ids):
+        if self.params.entity:
+            entity_embedding = data["entity_embedding"].to(
+                self.device, dtype=torch.float
+            )
+            output = model(ids, mask, token_type_ids, entity_embedding)
+        else:
+            output = model(ids, mask, token_type_ids)
+        return output
 
     def train(self, best_valid_loss=float("Inf")):
 
@@ -241,7 +260,7 @@ class Trainer:
         valid_loss_list = []
         global_step_list = []
         # early stop counter
-        early_stop_counter = 0
+        # early_stop_counter = 0
 
         # eval setting
         eval_every = len(training_loader) // self.params.eval_every
@@ -256,22 +275,21 @@ class Trainer:
 
             logger.log("--------------------Args--------------------")
 
-        if self.params.log_args:
-            if dist.get_rank() == 0:
-                # print and log args
-                print("--------------------Args--------------------")
-                for k, v in vars(self.params).items():
-                    logger.log(f"{k} = {v}")
-                    print(f"{k} = {v}")
+        if dist.get_rank() == 0:
+            # print and log args
+            print("--------------------Args--------------------")
+            for k, v in vars(self.params).items():
+                logger.log(f"{k} = {v}")
+                # print(f"{k} = {v}")
         #  training args
         epochs = self.epochs
         loss_fn = self.loss_fn
         optimizer = self.optimizer
-        verbose = self.params.verbose
-        print_logs = self.params.print_logs
+        # verbose = self.params.verbose
+        # print_logs = self.params.print_logs
         if dist.get_rank() == 0:
             logger.log("--------------------Loss--------------------")
-        for epoch in range(epochs):
+        for epoch in range(1, epochs + 1):
             # set epoch for shuffle
             training_sampler.set_epoch(epoch)
             testing_sampler.set_epoch(epoch)
@@ -287,13 +305,15 @@ class Trainer:
                 optimizer.zero_grad()
 
                 # entity enable
-                if self.params.entity:
-                    entity_embedding = data["entity_embedding"].to(
-                        self.device, dtype=torch.float
-                    )
-                    output = model(ids, mask, token_type_ids, entity_embedding)
-                else:
-                    output = model(ids, mask, token_type_ids)
+                # if self.params.entity:
+                #     entity_embedding = data["entity_embedding"].to(
+                #         self.device, dtype=torch.float
+                #     )
+                #     output = model(ids, mask, token_type_ids, entity_embedding)
+                # else:
+                #     output = model(ids, mask, token_type_ids)
+
+                output = self.entity_check(model, data, ids, mask, token_type_ids)
 
                 loss = loss_fn(output, targets)
                 loss.backward()
@@ -313,21 +333,16 @@ class Trainer:
                             )
                             targets = data["targets"].to(self.device, dtype=torch.float)
                             # entity enable
-                            if self.params.entity:
-                                entity_embedding = data["entity_embedding"].to(
-                                    self.device, dtype=torch.float
-                                )
-                                output = model(
-                                    ids, mask, token_type_ids, entity_embedding
-                                )
-                            else:
-                                output = model(ids, mask, token_type_ids)
+                            output = self.entity_check(
+                                model, data, ids, mask, token_type_ids
+                            )
 
                             loss = loss_fn(output, targets)
                             valid_running_loss += loss.item()
 
                         average_train_loss = running_loss / eval_every
                         average_valid_loss = valid_running_loss / len(testing_loader)
+
                         train_loss_list.append(average_train_loss)
                         valid_loss_list.append(average_valid_loss)
                         global_step_list.append(global_step)
@@ -348,43 +363,48 @@ class Trainer:
 
                         running_loss = 0
                         valid_running_loss = 0
+
                         model.train()
                         msg = "Epoch [{}/{}], Step [{}/{}], Train Loss: {:.4f}, Valid Loss: {:.4f}".format(
-                            epoch + 1,
+                            epoch,
                             epochs,
                             global_step,
                             epochs * len(training_loader),
                             average_train_loss,
                             average_valid_loss,
                         )
-                        if verbose:
-                            if dist.get_rank() == 0:
-                                if print_logs:
-                                    # print the training msg
-                                    print(msg)
-                                logger.log(msg)
-                        if best_valid_loss > average_valid_loss:
-                            best_valid_loss = average_valid_loss
-                            early_stop_counter = 0
-                            if dist.get_rank() == 0:
-                                save_checkpoint(self.model_path, model, best_valid_loss)
-                                save_metrics(
-                                    self.best_metrics_path,
-                                    train_loss_list,
-                                    valid_loss_list,
-                                    global_step_list,
-                                )
-                        else:
-                            early_stop_counter += 1
-                        if early_stop_counter >= self.early_stop_patience:
-                            print("Early stopping")
-                            if dist.get_rank() == 0:
-                                logger.log(
-                                    f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
-                                )
+                        if dist.get_rank() == 0:
+                            # print(msg)
+                            logger.log(msg)
+
+                        # early stopping
+                        self.early_stopping(average_valid_loss, model)
+                        if self.early_stopping.early_stop:
+                            print("Early Stopping")
                             break
+
+                        # if best_valid_loss > average_valid_loss:
+                        #     best_valid_loss = average_valid_loss
+                        #     early_stop_counter = 0
+                        #     if dist.get_rank() == 0:
+                        #         save_checkpoint(self.model_path, model, best_valid_loss)
+                        #         save_metrics(
+                        #             self.best_metrics_path,
+                        #             train_loss_list,
+                        #             valid_loss_list,
+                        #             global_step_list,
+                        #         )
+                        # else:
+                        #     early_stop_counter += 1
+                        # if early_stop_counter >= self.early_stop_patience:
+                        #     print("Early stopping")
+                        #     if dist.get_rank() == 0:
+                        #         logger.log(
+                        #             f"Early stopping in step:{global_step}/{epochs * len(training_loader)}"
+                        #         )
+                        #     break
         if dist.get_rank() == 0:
-            # validation
+            #     # validation
             if self.params.valid_enable:
                 eval_model = self.model
                 evaluator = Evaluator(
@@ -394,17 +414,16 @@ class Trainer:
                     params=None,
                     model_path=self.model_path,
                 )
-                if dist.get_rank() == 0:
-                    logger.log("--------------------Evaluation--------------------")
-
+                # if dist.get_rank() == 0:
+                logger.log("--------------------Evaluation--------------------")
                 evaluator.validation(logger, entity_enable=self.params.entity)
 
-            save_metrics(
-                self.metrics_path,
-                train_loss_list,
-                valid_loss_list,
-                global_step_list,
-            )
+                save_metrics(
+                    self.metrics_path,
+                    train_loss_list,
+                    valid_loss_list,
+                    global_step_list,
+                )
 
         end_time = time.time()
         elapsed_time = end_time - start_time

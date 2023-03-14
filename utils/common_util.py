@@ -3,6 +3,8 @@ import random, os
 import numpy as np
 import torch
 from torch.backends import cudnn
+import torch.distributed as dist
+import re
 import datetime
 from collections import OrderedDict
 
@@ -94,10 +96,11 @@ def get_DDP_path(name):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     file_path = os.path.join(CONFIG.DDP_DESTINATION_PATH, timestamp + "_" + name)
     tf_path = os.path.join(file_path, "tf_logs")
-    if not os.path.exists(tf_path):
-        os.makedirs(tf_path)
-    if not os.path.exists(file_path):
-        os.makedirs(file_path)
+    if dist.get_rank() == 0:
+        if not os.path.exists(tf_path):
+            os.makedirs(tf_path)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
     return file_path, tf_path
 
 
@@ -155,7 +158,7 @@ def get_train_parser():
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
     argparser.add_argument(
-        "--early_stop_patience", type=int, default=5, help="early stop patience"
+        "--early_stop_patience", type=int, default=10, help="early stop patience"
     )
 
     argparser.add_argument(
@@ -165,21 +168,6 @@ def get_train_parser():
         "--model_name", type=str, default="customBERT", help="name of the model"
     )
 
-    argparser.add_argument(
-        "--log_args",
-        action="store_true",
-        help="log the args of the training process",
-    )
-    argparser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="log verbose (loss) info of the training process",
-    )
-    argparser.add_argument(
-        "--print_logs",
-        action="store_true",
-        help="print the verbose info of the training process",
-    )
     args = argparser.parse_args()
     return args
 
@@ -199,8 +187,21 @@ def get_eval_parser():
     argparser.add_argument("--mode", type=str, default=None, help="eval mode (DDP)")
 
     argparser.add_argument("--entity", action="store_true", help="use entity")
+    argparser.add_argument("--entity_mode", choices=["transe", "rotate", "autosf"])
+    argparser.add_argument("--entity_size", type=int, help="entity embedding dimension")
 
     args = argparser.parse_args()
+
+    if args.entity:
+        if args.entity_mode is None:
+            raise ValueError("Entity mode is required when using entity embeddings")
+        elif args.entity_mode == "transe":
+            args.entity_size = 50
+        elif args.entity_mode == "rotate":
+            args.entity_size = 64
+        elif args.entity_mode == "autosf":
+            args.entity_size = 32
+
     return args
 
 
@@ -233,12 +234,12 @@ def get_train_parser_DDP():
         default=None,
         help="the path to the validation dataset (only when valid_enable is True)",
     )
-    argparser.add_argument("--lr", type=float, default=0.001, help="learning rate")
+    argparser.add_argument("--lr", type=float, default=1e-5, help="learning rate")
     argparser.add_argument(
-        "--train_batch", type=int, default=8, help="training set batch size"
+        "--train_batch", type=int, default=12, help="training set batch size"
     )
     argparser.add_argument(
-        "--test_batch", type=int, default=8, help="validation set batch size"
+        "--test_batch", type=int, default=12, help="validation set batch size"
     )
     argparser.add_argument(
         "--eval_every", type=int, default=5, help="evaluate every n step"
@@ -246,7 +247,7 @@ def get_train_parser_DDP():
     argparser.add_argument(
         "--max_len", type=int, default=512, help="max length to padding (For doc mode)"
     )
-    argparser.add_argument("--epochs", type=int, default=1, help="epoch of training ")
+    argparser.add_argument("--epochs", type=int, default=15, help="epoch of training ")
 
     argparser.add_argument(
         "--lstm",
@@ -262,31 +263,31 @@ def get_train_parser_DDP():
         "--dropout", type=float, default=0.5, help="dropout rate of the model"
     )
     argparser.add_argument(
-        "--early_stop_patience", type=int, default=5, help="early stop patience"
+        "--early_stop_patience", type=int, default=20, help="early stop patience"
     )
 
     argparser.add_argument(
         "--weight_decay", type=float, default=1e-6, help="weight decay of adam"
     )
-    argparser.add_argument(
-        "--model_name", type=str, default="customBERT", help="name of the model"
-    )
+    # argparser.add_argument(
+    #     "--model_name", type=str, default="customBERT", help="name of the model"
+    # )
 
     argparser.add_argument(
         "--log_args",
-        action="store_true",
+        action="store_false",
         help="log the args of the training process",
     )
-    argparser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="log verbose (loss) info of the training process",
-    )
-    argparser.add_argument(
-        "--print_logs",
-        action="store_true",
-        help="print the verbose info of the training process",
-    )
+    # argparser.add_argument(
+    #     "--verbose",
+    #     action="store_true",
+    #     help="log verbose (loss) info of the training process",
+    # )
+    # argparser.add_argument(
+    #     "--print_logs",
+    #     action="store_true",
+    #     help="print the verbose info of the training process",
+    # )
     args = argparser.parse_args()
 
     if args.entity:
@@ -299,4 +300,6 @@ def get_train_parser_DDP():
         elif args.entity_mode == "autosf":
             args.entity_size = 32
 
+    match = re.search(r"^(.+?)/", args.dataset)
+    args.model_name = match.group(1)
     return args

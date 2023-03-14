@@ -1,5 +1,4 @@
 from transformers import BertConfig
-import pykeen
 import CONFIG
 from models.layers import customBERT
 from train import Trainer
@@ -26,15 +25,15 @@ def main(params):
     config = BertConfig(label2id=CONFIG.LABEL2ID, id2label=CONFIG.ID2LABEL)
     torch.cuda.set_device(LOCAL_RANK)
 
-    model = customBERT(config, entity_size=params.entity_size, params=params).to(
-        LOCAL_RANK
-    )
+    model = customBERT(config, params=params).to(LOCAL_RANK)
 
     modelname = params.model_name
-    # TODO FIX THE DUPLICATE DIR ISSUE
+
     file_path, tf_path = get_DDP_path(modelname)
-    # save config
-    model.config.to_json_file(file_path + "/" + "config.json")
+    if rank == 0:
+        # TODO FIX THE DUPLICATE DIR ISSUE
+        # save config
+        model.config.to_json_file(file_path + "/" + "config.json")
 
     # DDP model
     model = DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)

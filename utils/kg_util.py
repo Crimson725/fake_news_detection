@@ -3,7 +3,6 @@ import pykeen
 from pykeen.datasets import CSKG
 import torch
 import torch.nn.init as init
-import re
 import CONFIG
 
 

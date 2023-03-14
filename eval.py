@@ -70,6 +70,7 @@ class Evaluator:
         report = classification_report(
             fin_targets, outputs, target_names=CONFIG.ID2LABEL.values()
         )
+        print("\n")
         print(f"Accuracy Score = {accuracy}")
         print(f"F1 Score (Micro) = {f1_score_micro}")
         print(f"F1 Score (Macro) = {f1_score_macro}")

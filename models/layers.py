@@ -4,6 +4,11 @@ import torch.nn.init as init
 from transformers import BertModel, BertForSequenceClassification
 import CONFIG
 
+# disable the warning
+from transformers import logging as hf_logging
+
+hf_logging.set_verbosity_error()
+
 
 class BERT(nn.Module):
     def __init__(self, config):
@@ -22,7 +27,7 @@ class BERT(nn.Module):
 
 
 class customBERT(nn.Module):
-    def __init__(self, config, entity_size, params):
+    def __init__(self, config, params):
 
         super(customBERT, self).__init__()
         self.params = params
@@ -38,7 +43,8 @@ class customBERT(nn.Module):
         self.num_heads = 12
 
         # the size of the entity embedding
-        self.entity_size = entity_size
+        if self.params.entity:
+            self.entity_size = self.params.entity_size
 
         self.l1 = BertModel.from_pretrained(pretrained_model, config=self.config)
 

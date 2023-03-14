@@ -25,3 +25,4 @@ model_files/CSKG_embeddings/RotatE/trained_model.pkl
 # datasets/LUN/lun_train_entity.csv
 # datasets/LUN/lun_train_new.csv
 # datasets/LUN/lun_train.csv
+test.ipynb

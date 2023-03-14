@@ -1,13 +1,10 @@
 import os
 import random
-import pykeen
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader, DistributedSampler
 from transformers import BertTokenizer
-import spacy
-from fastcoref import spacy_component
 import CONFIG
 
 from utils.kg_util import KG_embedding
@@ -21,19 +18,18 @@ class DocDataset(Dataset):
         self.targets = dataframe.label
         self.params = params
         # the entity list
-        self.head_entity = dataframe.head_entity
-        self.tail_entity = dataframe.tail_entity
+        self.head_entity = dataframe.head_kg
+        self.tail_entity = dataframe.tail_kg
         # the relation list
-        self.relation = dataframe.relation
+        self.relation = dataframe.relation_kg
 
         # get tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(CONFIG.BERT_BASE_PATH)
 
-        self.aggregator = SelfAttention(input_size=params.entity_size)
-
         if args is None:
             self.max_len = self.params.max_len
             if self.params.entity:
+                self.aggregator = SelfAttention(input_size=params.entity_size)
                 self.kg_generator = KG_embedding(self.aggregator)
         else:
             # use saved args for initialization
@@ -42,6 +38,7 @@ class DocDataset(Dataset):
             # get entity embedding generator
             # based on the training settings
             if self.args.entity:
+                self.aggregator = SelfAttention(input_size=params.entity_size)
                 self.kg_generator = KG_embedding(self.aggregator)
 
     def __len__(self):
